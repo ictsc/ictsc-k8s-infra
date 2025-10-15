@@ -1,0 +1,39 @@
+## template: jinja
+#cloud-config
+hostname: "{{ ds.meta_data.Server.Name }}"
+timezone: Asia/Tokyo
+ssh_pwauth: false
+users:
+  - name: ictsc
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys: ["${ssh_key}"]
+
+write_files:
+  - path: /etc/systemd/network/10-ens3.network
+    content: |
+      [Match]
+      Name=ens3
+
+      [Network]
+      Address=${ip4_addr}/${ip4_mask}
+      Gateway=${ip4_gateway}
+      Address=${ip6_addr}/64
+      Gateway=fe80::1
+      Address=64:ff9b::${ip4_addr}/${96+ip4_mask}
+      DNS=2001:e42::1
+      DNS=2001:e42::2
+      NTP=ntp1.sakura.ad.jp
+
+runcmd:
+  - systemctl disable multipathd udisks2 ModemManager
+  - systemctl enable systemd-networkd systemd-resolved systemd-timesyncd
+  - systemctl restart systemd-networkd systemd-resolved systemd-timesyncd
+  - ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+  # Update mac address table
+  - ping -c 1 210.188.224.10
+  - ping -c 1 2001:e42::1
+  # Update and install packages
+  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+  - systemctl reboot

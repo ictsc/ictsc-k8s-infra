@@ -1,0 +1,17 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/aqua-yaml.json
+# aqua - Declarative CLI Version Manager
+# https://aquaproj.github.io/
+# checksum:
+#   enabled: true
+#   require_checksum: true
+#   supported_envs:
+#   - all
+registries:
+- type: standard
+  ref: v4.414.0  # renovate: depName=aquaproj/aqua-registry
+packages:
+- name: tofuutils/tenv@v4.7.21
+- name: k0sproject/k0sctl@v0.25.1
+- name: sacloud/usacloud@v1.16.2
+- name: kubernetes-sigs/kustomize@kustomize/v5.7.1

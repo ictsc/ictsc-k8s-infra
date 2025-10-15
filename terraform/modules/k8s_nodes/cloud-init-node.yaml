@@ -1,0 +1,60 @@
+## template: jinja
+#cloud-config
+hostname: "{{ ds.meta_data.Server.Name }}"
+timezone: Asia/Tokyo
+ssh_pwauth: false
+users:
+  - name: ictsc
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys: ["${ssh_key}"]
+
+write_files:
+  - path: /etc/systemd/network/10-ens3.network
+    content: |
+      [Match]
+      Name=ens3
+
+      [Network]
+      Address=${ip6_addr}/64
+      Gateway=fe80::1
+      NTP=ntp1.sakura.ad.jp
+
+      [Route]
+      Destination=64:ff9b::/96
+      Gateway=fe80::64
+  - path: /etc/resolv.conf.tmp
+    content: |
+      nameserver 2001:e42::1
+      nameserver 2001:e42::2
+  - path: /etc/resolv.conf.stub-local
+    content: |
+      nameserver 127.0.0.1
+      nameserver ::1
+      options edns0 trust-ad
+  - path: /etc/unbound/unbound.conf.d/stub-dns64.conf
+    content: |
+      server:
+        interface: 127.0.0.1
+        interface: ::1
+        module-config: "dns64 validator iterator"
+        dns64-prefix: 64:ff9b::/96
+      forward-zone:
+        name: "."
+        forward-addr: 2001:e42::1
+        forward-addr: 2001:e42::2
+
+runcmd:
+  - systemctl disable multipathd udisks2 ModemManager
+  - systemctl disable --now systemd-resolved
+  - echo "127.0.1.1 $(hostname)" >> /etc/hosts
+  - mv /etc/resolv.conf.tmp /etc/resolv.conf
+  - systemctl enable systemd-networkd systemd-timesyncd
+  - systemctl restart systemd-networkd systemd-timesyncd
+  - ping -c 1 2001:e42::1
+  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y unbound
+  - systemctl enable unbound
+  - mv /etc/resolv.conf.stub-local /etc/resolv.conf
+  - systemctl reboot

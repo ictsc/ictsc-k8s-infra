@@ -1,0 +1,7 @@
+.env
+!.env.example
+
+terraform/**/.terraform
+terraform/modules/*/.terraform.lock.hcl
+
+manifests/**/charts
