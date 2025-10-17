@@ -1,0 +1,49 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: default-ingress-only-host
+spec:
+  description: "Deny all ingress traffic except from host"
+  endpointSelector: {}
+  enableDefaultDeny:
+    ingress: true
+  ingress:
+    - fromEntities:
+        - host
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: cilium-health
+spec:
+  description: "Allow cilium health check"
+  endpointSelector:
+    matchExpressions:
+      # Health endpoint (FYI: https://docs.cilium.io/en/stable/gettingstarted/terminology/#special-identities)
+      - key: reserved:health
+        operator: Exists
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+        - health
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-web-to-ingress
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: reserved:ingress
+        operator: Exists
+  ingress:
+    - fromEntities: [all]
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP

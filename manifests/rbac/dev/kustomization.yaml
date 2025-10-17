@@ -1,0 +1,3 @@
+resources:
+  - ../base
+  - user-cluster-admin-rbac.yaml

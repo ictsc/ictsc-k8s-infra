@@ -1,0 +1,17 @@
+.:53 {
+	errors
+	health
+	ready
+	dns64 64:ff9b::/96
+	kubernetes cluster.local in-addr.arpa ip6.arpa {
+		pods insecure
+		ttl 30
+		fallthrough in-addr.arpa ip6.arpa
+	}
+	prometheus :9153
+	forward . 2001:e42::1 2001:e42::2
+	cache 30
+	loop
+	reload
+	loadbalance
+}

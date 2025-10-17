@@ -1,0 +1,14 @@
+namespace: kube-system
+
+resources:
+  - rbac.yaml
+  - deployment.yaml
+  - service.yaml
+  - network-policy.yaml
+
+configMapGenerator:
+  - name: coredns
+    files:
+      - Corefile
+    options:
+      disableNameSuffixHash: true
