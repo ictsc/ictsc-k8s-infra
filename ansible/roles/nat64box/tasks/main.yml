@@ -1,0 +1,52 @@
+---
+- name: Install podman
+  ansible.builtin.package:
+    name: podman
+    state: present
+
+- name: Create podman container file for nat64
+  ansible.builtin.template:
+    src: nat64.container.j2
+    dest: /etc/containers/systemd/nat64.container
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart nat64 service
+
+- name: Create systemd-networkd drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/network/10-ens3.network.d
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create systemd-networkd configuration
+  ansible.builtin.template:
+    src: nat64-net.conf.j2
+    dest: /etc/systemd/network/10-ens3.network.d/nat64.conf
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart systemd-networkd
+
+- name: Create nat64 prometheus discovery file
+  ansible.builtin.template:
+    src: nat64-prometheus.yaml.j2
+    dest: /etc/otelcol/prometheus-sd-configs.d/nat64.yaml
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Enable and start nat64 service
+  ansible.builtin.systemd:
+    name: nat64
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Enable and start systemd-networkd
+  ansible.builtin.systemd:
+    name: systemd-networkd
+    enabled: yes
+    state: started

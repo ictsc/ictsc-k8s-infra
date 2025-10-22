@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cilium-kubernetes-service-host
+  namespace: kube-system
+data:
+  host: "{{ k0s_k8s_service_ipv6 }}"

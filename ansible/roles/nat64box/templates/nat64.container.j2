@@ -1,0 +1,28 @@
+[Unit]
+Description=Cilium NAT46x64 Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=quay.io/cilium/cilium:stable
+Volume=/sys/fs/bpf:/sys/fs/bpf
+Volume=/lib/modules:/lib/modules
+Network=host
+PodmanArgs=--privileged=true
+Exec=cilium-agent \
+  --enable-ipv4=true \
+  --enable-ipv6=true \
+  --devices=ens3 \
+  --enable-k8s=false \
+  --bpf-lb-nat46x64=true \
+  --enable-nat46x64-gateway=true \
+  --enable-bpf-masquerade \
+  --kube-proxy-replacement=true \
+  --datapath-mode=netkit \
+  --prometheus-serve-addr=localhost:9962
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

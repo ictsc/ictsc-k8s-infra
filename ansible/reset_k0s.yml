@@ -1,0 +1,7 @@
+---
+- name: Reset k0s
+  hosts: kubernetes
+  become: yes
+  roles:
+    - install_k0s
+    - reset_k0s

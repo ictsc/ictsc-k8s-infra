@@ -1,0 +1,39 @@
+---
+- name: Prepare k0s binary on localhost
+  delegate_to: localhost
+  run_once: true
+  become: false
+  block:
+    - name: Create cache directory on localhost
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/.cache/k0s"
+        state: directory
+        mode: "0755"
+
+    - name: Download artifacts to cache
+      loop:
+        - k0s-{{ install_k0s_version }}-amd64
+        - k0s-{{ install_k0s_version }}-amd64.sig
+      ansible.builtin.get_url:
+        url: "https://github.com/k0sproject/k0s/releases/download/{{ install_k0s_version }}/{{ item }}"
+        dest: "{{ playbook_dir }}/.cache/k0s/{{ item }}"
+        mode: "0644"
+
+    - name: Verify artifacts
+      loop:
+        - k0s-{{ install_k0s_version }}-amd64
+      ansible.builtin.command: >-
+        cosign verify-blob
+        --key {{ role_path }}/files/k0s-cosign.pub
+        --signature {{ playbook_dir }}/.cache/k0s/{{ item }}.sig
+        {{ playbook_dir }}/.cache/k0s/{{ item }}
+      changed_when: false
+
+- name: Copy k0s binary
+  become: true
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/.cache/k0s/k0s-{{ install_k0s_version }}-amd64"
+    dest: /usr/local/bin/k0s
+    mode: '0755'
+    owner: root
+    group: root

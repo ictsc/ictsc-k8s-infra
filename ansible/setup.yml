@@ -1,0 +1,66 @@
+---
+- name: Setup OpenTelemetry Collector
+  hosts: all
+  become: yes
+  roles:
+    - otelcol
+  vars:
+    otelcol_sakuracloud_metrics_endpoint: >-
+      {{ lookup('ansible.builtin.env',
+      'SAKURACLOUD_METRICS_ENDPOINT', default=undef()) }}
+    otelcol_sakuracloud_metrics_token: >-
+      {{ lookup('ansible.builtin.env',
+      'SAKURACLOUD_METRICS_TOKEN', default=undef()) }}
+
+- name: Setup NAT64 Box
+  hosts: nat64box
+  become: yes
+  roles:
+    - nat64box
+
+- name: Install k0s
+  hosts: kubernetes
+  become: yes
+  roles:
+    - install_k0s
+
+- name: Configure k0s on control plane
+  hosts: cplane
+  become: yes
+  roles:
+    - cplane_firewall
+    - k0s
+  vars:
+    cplane_firewall_cplane_ipv6_subnet: "{{ cplane_ipv6_subnet }}"
+    cplane_firewall_worker_ipv6_subnet: "{{ worker_ipv6_subnet }}"
+    k0s_k8s_pod_cidr: "{{ k8s_pod_cidr }}"
+    k0s_k8s_service_cidr: "{{ k8s_service_cidr }}"
+    k0s_nat64_prefix: "{{ nat64_prefix }}"
+    k0s_k8s_service_ipv4: "{{ k8s_service_ipv4 }}"
+    k0s_k8s_service_ipv6: "{{ k8s_service_ipv6 }}"
+
+- name: Bootstrap first controller
+  hosts: cplane:&bootstrap
+  become: yes
+  roles:
+    - bootstrap_controller
+    - backup_k0s
+  vars:
+    backup_k0s_sakuracloud_s3_access_key_id: >-
+      {{ lookup('ansible.builtin.env',
+      'SAKURACLOUD_S3_BACKUP_ACCESS_KEY_ID', default=undef()) }}
+    backup_k0s_sakuracloud_s3_secret_access_key: >-
+      {{ lookup('ansible.builtin.env',
+      'SAKURACLOUD_S3_BACKUP_SECRET_ACCESS_KEY', default=undef()) }}
+
+- name: Join additional controllers
+  hosts: cplane:!bootstrap
+  become: yes
+  roles:
+    - join_controller
+
+- name: Join workers
+  hosts: worker
+  become: yes
+  roles:
+    - join_worker

@@ -1,0 +1,50 @@
+---
+- name: Install packages
+  loop:
+    - s4cmd
+    - age
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+
+- name: Setup systemd credential
+  ansible.builtin.command:
+    cmd: systemd-creds setup
+  args:
+    creates: /var/lib/systemd/credential.secret
+- name: Encrypt backup storage credentials
+  ansible.builtin.command:
+    cmd: systemd-creds encrypt - /etc/credstore.encrypted/k0s-backup-credentials
+  args:
+    stdin: "{{ lookup('ansible.builtin.template', 'templates/credentials.j2') }}"
+    stdin_add_newline: false
+  changed_when: false
+
+- name: Copy k0s-backup.sh
+  ansible.builtin.copy:
+    src: k0s-backup.sh
+    dest: /usr/local/bin/k0s-backup.sh
+    mode: "0755"
+    owner: root
+    group: root
+- name: Deploy service
+  ansible.builtin.template:
+    src: k0s-backup.service.j2
+    dest: /etc/systemd/system/k0s-backup.service
+    mode: "0644"
+    owner: root
+    group: root
+- name: Deploy timer
+  ansible.builtin.template:
+    src: k0s-backup.timer.j2
+    dest: /etc/systemd/system/k0s-backup.timer
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Enable backup timer
+  ansible.builtin.systemd:
+    name: k0s-backup.timer
+    enabled: true
+    state: started
+    daemon_reload: true

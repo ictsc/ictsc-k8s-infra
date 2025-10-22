@@ -1,0 +1,116 @@
+---
+- name: Prepare otelcol on localhost
+  delegate_to: localhost
+  run_once: true
+  become: false
+  block:
+    - name: Create cache directory on localhost
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/.cache/sacloud-otelcol"
+        state: directory
+        mode: "0755"
+
+    - name: Verify release
+      ansible.builtin.command: >-
+        gh release verify --repo sacloud/sacloud-otel-collector
+        --format json v{{ otelcol_sacloud_version }}
+      register: otelcol_release_verify
+      changed_when: false
+
+    - name: Download artifacts
+      loop:
+        - sacloud-otel-collector_{{ otelcol_sacloud_version }}_linux_amd64.tar.gz
+      ansible.builtin.get_url:
+        url: >-
+          https://github.com/sacloud/sacloud-otel-collector/releases/download/
+          v{{ otelcol_sacloud_version }}/{{ item }}
+        dest: "{{ playbook_dir }}/.cache/sacloud-otelcol/{{ item }}"
+        mode: "0644"
+        checksum: >-
+          sha256:{{
+            (otelcol_release_verify.stdout | from_json).verificationResult.statement.subject
+            | selectattr('name', 'defined') | selectattr('name', 'equalto', item)
+            | map(attribute='digest.sha256') | first }}
+
+    - name: Create archive directory
+      loop:
+        - sacloud-otel-collector_{{ otelcol_sacloud_version }}_linux_amd64
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/.cache/sacloud-otelcol/{{ item }}"
+        state: directory
+        mode: "0755"
+
+    - name: Unarchive artifacts
+      loop:
+        - sacloud-otel-collector_{{ otelcol_sacloud_version }}_linux_amd64
+      ansible.builtin.unarchive:
+        src: >-
+          {{ playbook_dir }}/.cache/sacloud-otelcol/{{ item }}.tar.gz
+        dest: >-
+          {{ playbook_dir }}/.cache/sacloud-otelcol/{{ item }}
+
+- name: Copy otelcol binary to remote host
+  vars:
+    _prefix: "{{ playbook_dir }}/.cache/sacloud-otelcol/sacloud-otel-collector_{{ otelcol_sacloud_version }}"
+  ansible.builtin.copy:
+    src: "{{ _prefix }}_linux_amd64/sacloud-otel-collector"
+    dest: "/usr/local/bin/otelcol"
+    mode: "0755"
+    owner: root
+    group: root
+  become: true
+
+- name: Create otelcol configuration directory
+  ansible.builtin.file:
+    path: /etc/otelcol
+    state: directory
+    mode: "0755"
+  become: true
+- name: Deploy otelcol configuration
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/otelcol/config.yaml
+    mode: "0644"
+  notify: Restart otelcol
+  become: true
+- name: Create otelcol prometheus sd configs directory
+  ansible.builtin.file:
+    path: /etc/otelcol/prometheus-sd-configs.d
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Setup systemd credential
+  ansible.builtin.command:
+    cmd: systemd-creds setup
+  args:
+    creates: /var/lib/systemd/credential.secret
+  become: true
+- name: Encrypt sakuracloud metrics token
+  ansible.builtin.command:
+    cmd: systemd-creds encrypt - /etc/credstore.encrypted/sakuracloud-metrics-token
+  args:
+    stdin: "{{ otelcol_sakuracloud_metrics_token }}"
+    stdin_add_newline: false
+    creates: /etc/credstore.encrypted/sakuracloud-metrics-token
+  become: true
+
+- name: Deploy otelcol systemd service
+  ansible.builtin.template:
+    src: otelcol.service.j2
+    dest: /etc/systemd/system/otelcol.service
+    mode: "0644"
+  notify: Restart otelcol
+  become: true
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: Enable and start otelcol service
+  ansible.builtin.systemd:
+    name: otelcol
+    enabled: true
+    state: started
+  become: true

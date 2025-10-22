@@ -1,0 +1,24 @@
+[Unit]
+Description=OpenTelemetry Collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+ExecStart=/usr/local/bin/otelcol --config=${CONFIGURATION_DIRECTORY}/config.yaml
+Restart=on-failure
+RestartSec=5s
+
+ConfigurationDirectory=otelcol
+StateDirectory=otelcol
+ProtectProc=default
+ProcSubset=all
+
+MemoryAccounting=yes
+MemoryMax=100M
+Environment=GOMEMLIMIT=80MiB
+LoadCredentialEncrypted=sakuracloud-metrics-token
+
+[Install]
+WantedBy=multi-user.target

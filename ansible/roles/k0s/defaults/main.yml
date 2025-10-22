@@ -1,0 +1,12 @@
+---
+k0s_cluster_name: "ictsc-dev-cluster"
+
+# Network configuration
+k0s_k8s_pod_cidr:
+k0s_k8s_service_cidr:
+k0s_nat64_prefix: "64:ff9b::"
+
+# API configuration
+k0s_k8s_api_host: "k8s-dev.ictsc.net"
+k0s_k8s_service_ipv4:
+k0s_k8s_service_ipv6:

@@ -1,0 +1,45 @@
+---
+- name: Check if k0sworker service exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/k0sworker.service
+  register: join_worker_k0s_worker_service
+
+- name: Join worker to cluster
+  when: not join_worker_k0s_worker_service.stat.exists
+  block:
+    - name: Generate worker join token on bootstrap node
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/k0s token create --role=worker --expiry=5m"
+      delegate_to: "{{ groups['bootstrap'][0] }}"
+      register: join_worker_token
+      changed_when: false
+
+    - name: Save worker token to file
+      ansible.builtin.copy:
+        content: "{{ join_worker_token.stdout }}"
+        dest: /tmp/k0s-token
+        mode: "0600"
+        owner: root
+        group: root
+
+    - name: Install k0s worker with token
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/k0s install worker --token-file /tmp/k0s-token"
+      changed_when: false
+
+- name: Enable and start k0s worker
+  ansible.builtin.systemd:
+    name: k0sworker
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for k0s worker to be ready
+  delegate_to: "{{ groups['bootstrap'][0] }}"
+  ansible.builtin.command:
+    cmd: >-
+      /usr/local/bin/k0s kubectl wait --for=condition=Ready
+      node -l kubernetes.io/hostname={{ ansible_hostname }}
+      --timeout=10s
+  retries: 10
+  changed_when: false

@@ -1,0 +1,34 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: ClusterConfig
+metadata:
+  name: "{{ k0s_cluster_name }}"
+spec:
+  api:
+    address: "{{ ansible_host }}"
+    sans:
+      - "{{ k0s_k8s_service_ipv4 }}"
+      - "{{ k0s_k8s_service_ipv6 }}"
+      - "{{ k0s_k8s_api_host }}"
+    k0sApiPort: 9443
+    port: 6443
+    extraArgs:
+      authentication-config: "/etc/k0s/auth-config.yaml"
+  konnectivity:
+    adminPort: 8133
+    agentPort: 8132
+  network:
+    provider: custom
+    podCIDR: "{{ k0s_k8s_pod_cidr }}"
+    serviceCIDR: "{{ k0s_k8s_service_cidr }}"
+    controlPlaneLoadBalancing:
+      enabled: true
+      type: Keepalived
+      keepalived:
+        vrrpInstances:
+          - virtualIPs:
+              - "{{ k0s_k8s_service_ipv6 }}/128"
+              - "{{ k0s_nat64_prefix }}{{ k0s_k8s_service_ipv4 }}/128"
+            authPass: cplane
+    nodeLocalLoadBalancing:
+      enabled: true
+      type: EnvoyProxy

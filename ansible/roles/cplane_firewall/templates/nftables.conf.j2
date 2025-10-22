@@ -1,0 +1,48 @@
+#!/usr/sbin/nft -f
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+flush ruleset
+
+table ip6 filter {
+    chain input {
+        type filter hook input priority filter; policy drop;
+
+        # Allow established and related connections
+        ct state established,related accept
+
+        # Allow loopback
+        iif lo accept
+
+        # Allow ICMPv6 (required for IPv6 - NDP, router advertisements, etc.)
+        icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, echo-reply, nd-router-advert, nd-router-solicit, nd-neighbor-solicit, nd-neighbor-advert } accept
+
+        # Global Services
+        # SSH
+        tcp dport 22 accept
+        # kube-apiserver
+        tcp dport 6443 accept
+		tcp dport 6444 accept
+
+        # Control Plane Node Services
+        # etcd client
+        ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} tcp dport 2379 accept
+        # etcd peer
+        ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} tcp dport 2380 accept
+        # k0s api
+        ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} tcp dport 9443 accept
+        # VRRP
+        ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} meta l4proto vrrp accept
+
+        # Worker Node Services
+        # konnectivity
+        ip6 saddr {{ cplane_firewall_worker_ipv6_subnet }} tcp dport 8132 accept
+    }
+
+    chain forward {
+        type filter hook forward priority filter; policy drop;
+    }
+
+    chain output {
+        type filter hook output priority filter; policy accept;
+    }
+}

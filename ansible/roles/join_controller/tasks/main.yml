@@ -1,0 +1,50 @@
+---
+- name: Check if k0scontroller service exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/k0scontroller.service
+  register: join_controller_k0s_controller_service
+
+- name: Join controller to cluster
+  when: not join_controller_k0s_controller_service.stat.exists
+  block:
+    - name: Generate controller join token on bootstrap node
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/k0s token create --role=controller --expiry=5m"
+      delegate_to: "{{ groups['bootstrap'][0] }}"
+      register: join_controller_token
+      changed_when: false
+
+    - name: Save controller token to file
+      ansible.builtin.copy:
+        content: "{{ join_controller_token.stdout }}"
+        dest: /tmp/k0s-token
+        mode: "0600"
+        owner: root
+        group: root
+
+    - name: Install k0s controller with token
+      ansible.builtin.command:
+        cmd: >-
+          /usr/local/bin/k0s install controller
+          --config /etc/k0s/k0s.yaml
+          --token-file /tmp/k0s-token
+          --feature-gates=IPv6SingleStack=true
+          --disable-components=coredns,kube-proxy
+          --enable-metrics-scraper
+      changed_when: false
+
+- name: Enable and start k0s controller
+  ansible.builtin.systemd:
+    name: k0scontroller
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Wait for k0s to be ready
+  ansible.builtin.command:
+    cmd: "/usr/local/bin/k0s kubectl get --raw /healthz"
+  register: join_controller_k0s_health
+  until: join_controller_k0s_health.rc == 0
+  retries: 30
+  delay: 10
+  changed_when: false

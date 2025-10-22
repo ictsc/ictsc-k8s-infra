@@ -1,0 +1,2 @@
+backup_k0s_sakuracloud_s3_bucket: ictsc-k8s-backup
+backup_k0s_environment: dev

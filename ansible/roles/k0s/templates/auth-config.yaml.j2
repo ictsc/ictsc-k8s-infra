@@ -1,0 +1,15 @@
+apiVersion: apiserver.config.k8s.io/v1
+kind: AuthenticationConfiguration
+jwt:
+  - issuer:
+      url: https://dex.ictsc.net
+      audiences: ["rf43dyo2yh2zmxakcuvy2uasv"]
+    claimMappings:
+      username:
+        claim: preferred_username
+        prefix: "github:"
+      groups:
+        claim: groups
+        prefix: "github:"
+      uid:
+        claim: sub

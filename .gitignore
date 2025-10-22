@@ -4,4 +4,6 @@
 terraform/**/.terraform
 terraform/modules/*/.terraform.lock.hcl
 
+ansible/.cache
+
 manifests/**/charts

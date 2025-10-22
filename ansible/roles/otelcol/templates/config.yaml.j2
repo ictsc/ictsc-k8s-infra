@@ -1,0 +1,70 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu:
+      memory:
+      disk:
+      network:
+      paging:
+      processes:
+
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'file'
+          scrape_interval: 30s
+          file_sd_configs:
+            - files:
+              - "${env:CONFIGURATION_DIRECTORY}/prometheus-sd-configs.d/*.yaml"
+              - "${env:CONFIGURATION_DIRECTORY}/prometheus-sd-configs.d/*.yml"
+              - "${env:CONFIGURATION_DIRECTORY}/prometheus-sd-configs.d/*.json"
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 100
+
+  batch:
+
+  resourcedetection:
+    detectors: [system]
+    system:
+      hostname_sources: [os]
+      resource_attributes:
+        host.id:
+          enabled: true
+
+exporters:
+  prometheusremotewrite/sakura:
+    endpoint: "https://{{ otelcol_sakuracloud_metrics_endpoint }}/prometheus/api/v1/write"
+    headers:
+      authorization: "Bearer ${file:${env:CREDENTIALS_DIRECTORY}/sakuracloud-metrics-token}"
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  telemetry:
+    resource:
+      service.name: otelcol
+    metrics:
+      readers:
+        - periodic:
+            interval: 30000
+            exporter:
+              otlp:
+                protocol: grpc
+                endpoint: http://localhost:4317
+    logs:
+      encoding: console
+
+  pipelines:
+    metrics:
+      receivers: [otlp, hostmetrics, prometheus]
+      processors: [memory_limiter, batch, resourcedetection]
+      exporters: [prometheusremotewrite/sakura]

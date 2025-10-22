@@ -1,0 +1,58 @@
+---
+- name: Check if k0s controller is already installed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/k0scontroller.service
+  register: bootstrap_controller_k0s_controller_service
+
+- name: Bootstrap k0s
+  when: not bootstrap_controller_k0s_controller_service.stat.exists
+  block:
+    - name: Confirm to restore from backup
+      ansible.builtin.pause:
+        prompt: "k0s controller is not installed. Do you want to restore from backup? [Y/n]"
+      register: bootstrap_controller_restore_yn
+
+    - name: Restore k0s from backup
+      when: bootstrap_controller_restore_yn.user_input != 'n'
+      block:
+        - name: Prompt for backup file path
+          ansible.builtin.pause:
+            prompt: "Enter the path to the k0s backup file:"
+          register: bootstrap_controller_backup_path
+
+        - name: Copy backup file to controller
+          ansible.builtin.copy:
+            src: "{{ bootstrap_controller_backup_path.user_input }}"
+            dest: /tmp/k0s-backup.tar.gz
+            mode: "0600"
+
+        - name: Restore k0s from backup file
+          ansible.builtin.command:
+            cmd: "/usr/local/bin/k0s restore /tmp/k0s-backup.tar.gz"
+          changed_when: false
+
+    - name: Install k0s controller service
+      ansible.builtin.command:
+        cmd: >-
+          /usr/local/bin/k0s install controller
+          --config /etc/k0s/k0s.yaml
+          --feature-gates=IPv6SingleStack=true
+          --disable-components=coredns,kube-proxy
+          --enable-metrics-scraper
+        creates: /etc/systemd/system/k0scontroller.service
+
+- name: Enable and start k0s controller
+  ansible.builtin.systemd:
+    name: k0scontroller
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Wait for k0s to be ready
+  ansible.builtin.command:
+    cmd: "/usr/local/bin/k0s kubectl get --raw /healthz"
+  register: bootstrap_controller_k0s_health
+  until: bootstrap_controller_k0s_health.rc == 0
+  retries: 30
+  delay: 10
+  changed_when: false
