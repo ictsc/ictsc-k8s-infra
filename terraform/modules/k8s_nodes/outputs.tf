@@ -6,12 +6,16 @@ locals {
   )
 
   # kube-apiserver
-  k8s_service_ipv4 = element(sakura_internet.internet.ip_addresses, -1)
-  k8s_service_ipv6 = cidrhost(local.k8s_subnets[1], parseint("1008", 16)) # k8?
+  k8s_cluster_name = "ictsc-${var.env}"
+  k8s_api_host     = "k8s-${var.env}.ictsc.net"
+  k8s_api_ipv4     = element(sakura_internet.internet.ip_addresses, -1)
+  k8s_api_ipv6     = cidrhost(local.k8s_subnets[1], parseint("1008", 16)) # k8?
 
   # LoadBalancer service
-  k8s_lb_ipv4_start  = element(sakura_internet.internet.ip_addresses, -1 - 2 + 1)
-  k8s_lb_ipv4_end    = element(sakura_internet.internet.ip_addresses, -2)
+  k8s_lb_ipv4_addrs = [
+    for i in range(var.loadbalancer_ipv4_count) :
+    element(sakura_internet.internet.ip_addresses, -2 - i)
+  ]
   k8s_lb_ipv6_subnet = local.k8s_subnets[0]
 
   k8s_pod_cidr     = "${cidrhost(local.k8s_subnets[2], 0)}/108"
@@ -37,6 +41,9 @@ locals {
         nat64_prefix       = "64:ff9b::"
         cplane_ipv6_subnet = local.ipv6_cplane_prefix
         worker_ipv6_subnet = local.ipv6_worker_prefix
+        proxy_ipv4_addrs = flatten([
+          [local.k8s_api_ipv4], local.k8s_lb_ipv4_addrs
+        ])
       }
     }
     nat64box = {
@@ -45,12 +52,13 @@ locals {
 
     kubernetes = {
       vars = {
-        k8s_service_ipv4   = local.k8s_service_ipv4
-        k8s_service_ipv6   = local.k8s_service_ipv6
+        k8s_cluster_name   = local.k8s_cluster_name
+        k8s_api_host       = local.k8s_api_host
+        k8s_api_ipv4       = local.k8s_api_ipv4
+        k8s_api_ipv6       = local.k8s_api_ipv6
         k8s_service_cidr   = local.k8s_service_cidr
         k8s_pod_cidr       = local.k8s_pod_cidr
-        k8s_lb_ipv4_start  = local.k8s_lb_ipv4_start
-        k8s_lb_ipv4_end    = local.k8s_lb_ipv4_end
+        k8s_lb_ipv4_addrs  = local.k8s_lb_ipv4_addrs
         k8s_lb_ipv6_subnet = local.k8s_lb_ipv6_subnet
       }
       children = ["bootstrap", "cplane", "worker"]
@@ -66,5 +74,31 @@ locals {
 }
 
 output "ansible_inventory" {
-  value = jsonencode(local.ansible_inventory)
+  description = "Ansible inventory in JSON format."
+  value       = jsonencode(local.ansible_inventory)
+}
+
+output "k8s_api_host" {
+  description = "Kubernetes API server hostname."
+  value       = local.k8s_api_host
+}
+
+output "k8s_api_ipv4" {
+  description = "Kubernetes API server IPv4 address."
+  value       = local.k8s_api_ipv4
+}
+
+output "k8s_api_ipv6" {
+  description = "Kubernetes API server IPv6 address."
+  value       = local.k8s_api_ipv6
+}
+
+output "k8s_lb_ipv4_addrs" {
+  description = "Kubernetes LoadBalancer service IPv4 addresses."
+  value       = local.k8s_lb_ipv4_addrs
+}
+
+output "k8s_lb_ipv6_subnet" {
+  description = "Kubernetes LoadBalancer service IPv6 subnet."
+  value       = local.k8s_lb_ipv6_subnet
 }

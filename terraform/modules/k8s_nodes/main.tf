@@ -8,7 +8,7 @@ terraform {
 }
 
 locals {
-  required_ip_count          = var.cplane_nodes + var.worker_nodes + 1 + 1
+  required_ip_count          = 1 /* nat64box */ + 1 /* k8s api */ + var.loadbalancer_ipv4_count
   internet_required_ip_count = local.required_ip_count + 5 # さくらのクラウドのルーター+スイッチは5IP分余計に必要
   internet_netmask           = min(28, 32 - ceil(log(local.internet_required_ip_count, 2)))
 }
@@ -19,10 +19,6 @@ resource "sakura_internet" "internet" {
   band_width  = 100
   netmask     = local.internet_netmask
   enable_ipv6 = true
-}
-
-data "sakura_archive" "debian" {
-  tags = ["cloud-init", "distro-debian", "distro-ver-12.7.0"]
 }
 
 data "sakura_ssh_key" "ictsc" {
@@ -99,8 +95,8 @@ resource "sakura_server" "control_plane" {
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
-    ssh_key     = data.sakura_ssh_key.ictsc.public_key
-    ip6_addr    = cidrhost(local.ipv6_cplane_prefix, count.index)
+    ssh_key  = data.sakura_ssh_key.ictsc.public_key
+    ip6_addr = cidrhost(local.ipv6_cplane_prefix, count.index)
   })
 
   lifecycle {
@@ -135,8 +131,8 @@ resource "sakura_server" "worker" {
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
-    ssh_key     = data.sakura_ssh_key.ictsc.public_key
-    ip6_addr    = cidrhost(local.ipv6_worker_prefix, count.index)
+    ssh_key  = data.sakura_ssh_key.ictsc.public_key
+    ip6_addr = cidrhost(local.ipv6_worker_prefix, count.index)
   })
 
   lifecycle {
