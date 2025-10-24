@@ -58,6 +58,13 @@
     mode: "0644"
     owner: root
     group: root
+- name: Deploy cilium ippool
+  ansible.builtin.template:
+    src: cilium-ippool.yaml.j2
+    dest: /var/lib/k0s/manifests/cilium/cilium-ippool.yaml
+    mode: "0644"
+    owner: root
+    group: root
 
 - name: Create k0s manifests directory for CoreDNS
   ansible.builtin.file:

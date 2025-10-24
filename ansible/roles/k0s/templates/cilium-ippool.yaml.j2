@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default
+spec:
+  blocks:
+    - cidr: "{{ k0s_k8s_lb_ipv6_subnet }}"
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: default-v4
+spec:
+  serviceSelector:
+    matchLabels:
+      k8s.ictsc.net/lb-ipv4: "true"
+  blocks:
+    {% for addr in k0s_k8s_lb_ipv4_addrs %}
+    - cidr: "{{ k0s_nat64_prefix }}{{ addr }}/128"
+    {% endfor %}
