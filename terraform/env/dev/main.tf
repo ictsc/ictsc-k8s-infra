@@ -30,7 +30,7 @@ module "k8s_nodes" {
   tags                    = ["k8s", "dev"]
   cplane_nodes            = 3
   worker_nodes            = 3
-  loadbalancer_ipv4_count = 1
+  loadbalancer_ipv4_count = 4
 }
 
 output "ansible_inventory" {
