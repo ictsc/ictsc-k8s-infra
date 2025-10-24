@@ -30,6 +30,24 @@
     group: root
   notify: Restart systemd-networkd
 
+- name: Create dummy-nat46 netdev configuration
+  ansible.builtin.template:
+    src: dummy-nat46.netdev.j2
+    dest: /etc/systemd/network/10-dummy-nat46.netdev
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart systemd-networkd
+
+- name: Create dummy-nat46 network configuration
+  ansible.builtin.template:
+    src: dummy-nat46.network.j2
+    dest: /etc/systemd/network/20-dummy-nat46.network
+    mode: '0644'
+    owner: root
+    group: root
+  notify: Restart systemd-networkd
+
 - name: Create nat64 prometheus discovery file
   ansible.builtin.template:
     src: nat64-prometheus.yaml.j2

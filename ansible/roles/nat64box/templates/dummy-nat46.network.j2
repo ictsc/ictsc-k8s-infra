@@ -1,0 +1,7 @@
+[Match]
+Name=dummy-nat46
+
+[Network]
+{% for addr in nat64box_proxy_ipv4_addrs %}
+Address={{ addr }}/32
+{% endfor %}

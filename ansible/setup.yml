@@ -17,6 +17,8 @@
   become: yes
   roles:
     - nat64box
+  vars:
+    nat64box_proxy_ipv4_addrs: "{{ proxy_ipv4_addrs }}"
 
 - name: Install k0s
   hosts: kubernetes
