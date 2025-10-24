@@ -24,7 +24,10 @@
 
     - name: Install k0s worker with token
       ansible.builtin.command:
-        cmd: "/usr/local/bin/k0s install worker --token-file /tmp/k0s-token"
+        cmd: >-
+          /usr/local/bin/k0s install worker
+          --token-file /tmp/k0s-token
+          --kubelet-extra-args="--node-ip={{ ansible_host }}"
       changed_when: false
 
 - name: Enable and start k0s worker
