@@ -47,3 +47,22 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: hubble-relay-from-ui
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: hubble-relay
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: hubble-ui
+      toPorts:
+        - ports:
+            - port: "grpc"
+              protocol: TCP
+          rules:
+            http: [{}]

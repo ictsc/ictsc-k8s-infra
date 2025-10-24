@@ -33,3 +33,7 @@ hubble:
   tls:
     auto:
       method: cronJob
+  relay:
+    enabled: true
+  ui:
+    enabled: true
