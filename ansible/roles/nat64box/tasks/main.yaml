@@ -59,12 +59,12 @@
 - name: Enable and start nat64 service
   ansible.builtin.systemd:
     name: nat64
-    enabled: yes
+    enabled: true
     state: started
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Enable and start systemd-networkd
   ansible.builtin.systemd:
     name: systemd-networkd
-    enabled: yes
+    enabled: true
     state: started

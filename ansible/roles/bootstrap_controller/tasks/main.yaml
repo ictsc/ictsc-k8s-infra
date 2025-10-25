@@ -44,9 +44,9 @@
 - name: Enable and start k0s controller
   ansible.builtin.systemd:
     name: k0scontroller
-    enabled: yes
+    enabled: true
     state: started
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Wait for k0s to be ready
   ansible.builtin.command:

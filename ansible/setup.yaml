@@ -1,7 +1,7 @@
 ---
 - name: Setup OpenTelemetry Collector
   hosts: all
-  become: yes
+  become: true
   roles:
     - otelcol
   vars:
@@ -14,7 +14,7 @@
 
 - name: Setup NAT64 Box
   hosts: nat64box
-  become: yes
+  become: true
   roles:
     - nat64box
   vars:
@@ -22,13 +22,13 @@
 
 - name: Install k0s
   hosts: kubernetes
-  become: yes
+  become: true
   roles:
     - install_k0s
 
 - name: Configure k0s on control plane
   hosts: cplane
-  become: yes
+  become: true
   roles:
     - cplane_firewall
     - k0s
@@ -47,7 +47,7 @@
 
 - name: Bootstrap first controller
   hosts: cplane:&bootstrap
-  become: yes
+  become: true
   roles:
     - bootstrap_controller
     - backup_k0s
@@ -61,12 +61,12 @@
 
 - name: Join additional controllers
   hosts: cplane:!bootstrap
-  become: yes
+  become: true
   roles:
     - join_controller
 
 - name: Join workers
   hosts: worker
-  become: yes
+  become: true
   roles:
     - join_worker
