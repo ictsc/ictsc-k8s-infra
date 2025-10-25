@@ -15,17 +15,20 @@ export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
 tf-init:
 	terraform -chdir=$(TF_DIR) init
 
-tf-plan:
+tf-plan: tf-init
 	terraform -chdir=$(TF_DIR) plan
 
-tf-apply:
+tf-apply: tf-init
 	terraform -chdir=$(TF_DIR) apply
 
 tf-fmt:
 	terraform fmt -recursive terraform/
 
-tf-validate:
+tf-validate: $(TF_DIR)/.terraform
 	terraform -chdir=$(TF_DIR) validate
+
+$(TF_DIR)/.terraform:
+	terraform -chdir=$(TF_DIR) init -backend=false
 
 # Ansible targets
 .PHONY: ansible-apply ansible-validate
