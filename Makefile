@@ -51,4 +51,4 @@ clean-manifests:
 	rm -f $(MANIFESTS)
 
 manifests/%/dev.generated.yaml: manifests/%/dev/* manifests/%/base/*
-	kustomize build --enable-helm $(@D)/dev > $@
+	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $(@D)/dev > $@
