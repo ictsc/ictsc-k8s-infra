@@ -1,26 +1,51 @@
-.PHONY: help init plan apply fmt validate manifests
-
 ENV ?= dev
+
+.PHONY: fmt validate
+
+fmt: tf-fmt
+
+validate: tf-validate ansible-validate
+
+# Terraform targets
 TF_DIR = terraform/env/$(ENV)
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
 
-init:
+.PHONY: tf-init tf-plan tf-apply tf-fmt tf-validate
+
+tf-init:
 	terraform -chdir=$(TF_DIR) init
 
-plan:
+tf-plan:
 	terraform -chdir=$(TF_DIR) plan
 
-apply:
+tf-apply:
 	terraform -chdir=$(TF_DIR) apply
 
-fmt:
+tf-fmt:
 	terraform fmt -recursive terraform/
 
-validate:
+tf-validate:
 	terraform -chdir=$(TF_DIR) validate
 
+# Ansible targets
+.PHONY: ansible-apply ansible-validate
+
+ansible-apply: manifests
+	cd ansible && uv run ansible-playbook setup.yaml
+
+ansible-validate:
+	cd ansible && uv run ansible-lint setup.yaml reset_k0s.yaml
+
 # Kubernetes manifest build pattern rule
-manifests: manifests/cilium/dev.generated.yaml manifests/rbac/dev.generated.yaml manifests/coredns/dev.generated.yaml
+MANIFESTS_DIR = $(wildcard manifests/*)
+MANIFESTS = $(addsuffix /dev.generated.yaml,$(MANIFESTS_DIR))
+
+.PHONY: manifests clean-manifests
+
+manifests: $(MANIFESTS)
+
+clean-manifests:
+	rm -f $(MANIFESTS)
 
 manifests/%/dev.generated.yaml: manifests/%/dev/* manifests/%/base/*
-	kustomize build --enable-helm $(dir $<) > $@
+	kustomize build --enable-helm $(@D)/dev > $@
