@@ -1,0 +1,6 @@
+# YAML files should be included in language statistics
+*.yaml linguist-detectable=true
+*.yml linguist-detectable=true
+
+# Mark generated files as generated to exclude them from statistics
+*.generated.yaml linguist-generated=true
