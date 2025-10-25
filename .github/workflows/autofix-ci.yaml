@@ -26,9 +26,4 @@ jobs:
         run: make clean-manifests && make manifests
 
       - name: Autofix
-        if: github.event.pull_request != null
         uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27 # v1.3.2
-
-      - name: Check for differences
-        if: github.event.pull_request == null
-        run: git diff --exit-code
