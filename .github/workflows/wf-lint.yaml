@@ -18,26 +18,3 @@ jobs:
 
       - name: Lint
         run: make validate
-
-  autofix:
-    runs-on: ubuntu-latest
-    env:
-      TENV_AUTO_INSTALL: "true"
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: aquaproj/aqua-installer@ea518c135a02fc11ff8024364510c181a5c6b342 # v4.0.3
-        with:
-          aqua_version: v2.53.9
-
-      - name: Format
-        run: make fmt
-      - name: Generate manifests
-        run: make manifests
-
-      - name: Autofix
-        if: github.event.pull_request != null
-        uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27 # v1.3.2
-
-      - name: Check for differences
-        if: github.event.pull_request == null
-        run: git diff --exit-code
