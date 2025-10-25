@@ -15,4 +15,4 @@ jobs:
       - lint
 
   lint:
-    uses: .github/workflows/wf-lint.yaml
+    uses: ./.github/workflows/wf-lint.yaml
