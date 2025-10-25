@@ -23,7 +23,7 @@ jobs:
       - name: Format
         run: make fmt
       - name: Generate manifests
-        run: make manifests
+        run: make clean-manifests && make manifests
 
       - name: Autofix
         if: github.event.pull_request != null
