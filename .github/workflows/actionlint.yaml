@@ -1,0 +1,23 @@
+name: Actionlint
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: rhysd/actionlint@0d1f98b8e3e4fd8de665a1e1fa0ed371f212fbc1 # v1.7.5
+        with:
+          fail-on-error: true
