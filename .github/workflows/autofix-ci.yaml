@@ -1,12 +1,16 @@
-name: Lint
+name: autofix.ci
 
 on:
-  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+
 permissions:
   contents: read
 
 jobs:
-  lint:
+  autofix:
+    name: Autofix
     runs-on: ubuntu-latest
     env:
       TENV_AUTO_INSTALL: "true"
@@ -16,5 +20,10 @@ jobs:
         with:
           aqua_version: v2.53.9
 
-      - name: Lint
-        run: make validate
+      - name: Format
+        run: make fmt
+      - name: Generate manifests
+        run: make clean-manifests && make manifests
+
+      - name: Autofix
+        uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27 # v1.3.2
