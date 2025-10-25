@@ -1,2 +1,12 @@
+namespace: kube-system
+
 resources:
   - ../base
+
+helmCharts:
+  - name: cilium
+    repo: https://helm.cilium.io/
+    version: v1.19.0-pre.1
+    releaseName: cilium
+    namespace: kube-system
+    valuesFile: cilium-values.yaml
