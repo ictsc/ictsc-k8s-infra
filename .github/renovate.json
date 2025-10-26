@@ -8,12 +8,15 @@
   "prConcurrentLimit": 10,
   "minimumReleaseAge": "3 days",
   "platformAutomerge": true,
-  "labels": ["dependencies"],
-  "regexManagers": [
+  "labels": [
+    "dependencies"
+  ],
+  "customManagers": [
     {
+      "customType": "regex",
       "description": "Update raw.githubusercontent.com URLs in kustomization.yaml files",
-      "fileMatch": [
-        "(^|/)kustomization\\.ya?ml$"
+      "managerFilePatterns": [
+        "/(^|/)kustomization\\.ya?ml$/"
       ],
       "matchStrings": [
         "https://raw\\.githubusercontent\\.com/(?<depName>[^/]+/[^/]+)/(?<currentValue>[^/]+)/.*"
