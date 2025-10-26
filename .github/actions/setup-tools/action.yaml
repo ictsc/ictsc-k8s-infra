@@ -1,4 +1,5 @@
 name: Setup Tools
+description: Install development tools using Aqua
 runs:
   using: composite
   steps:
