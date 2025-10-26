@@ -8,5 +8,18 @@
   "prConcurrentLimit": 10,
   "minimumReleaseAge": "3 days",
   "platformAutomerge": true,
-  "labels": ["dependencies"]
+  "labels": ["dependencies"],
+  "regexManagers": [
+    {
+      "description": "Update raw.githubusercontent.com URLs in kustomization.yaml files",
+      "fileMatch": [
+        "(^|/)kustomization\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "https://raw\\.githubusercontent\\.com/(?<depName>[^/]+/[^/]+)/(?<currentValue>[^/]+)/.*"
+      ],
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "semver"
+    }
+  ]
 }
