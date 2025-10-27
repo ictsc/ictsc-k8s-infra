@@ -6,11 +6,9 @@
     - otelcol
   vars:
     otelcol_sakuracloud_metrics_endpoint: >-
-      {{ lookup('ansible.builtin.env',
-      'SAKURACLOUD_METRICS_ENDPOINT', default=undef()) }}
+      {{ lookup('sakura_secret', 'sakuracloud-metrics-endpoint', vault_id=vault_id) }}
     otelcol_sakuracloud_metrics_token: >-
-      {{ lookup('ansible.builtin.env',
-      'SAKURACLOUD_METRICS_TOKEN', default=undef()) }}
+      {{ lookup('sakura_secret', 'sakuracloud-metrics-token', vault_id=vault_id) }}
 
 - name: Setup NAT64 Box
   hosts: nat64box
@@ -53,11 +51,9 @@
     - backup_k0s
   vars:
     backup_k0s_sakuracloud_s3_access_key_id: >-
-      {{ lookup('ansible.builtin.env',
-      'SAKURACLOUD_S3_BACKUP_ACCESS_KEY_ID', default=undef()) }}
+      {{ lookup('sakura_secret', 'sakuracloud-s3-backup-access-key-id', vault_id=vault_id) }}
     backup_k0s_sakuracloud_s3_secret_access_key: >-
-      {{ lookup('ansible.builtin.env',
-      'SAKURACLOUD_S3_BACKUP_SECRET_ACCESS_KEY', default=undef()) }}
+      {{ lookup('sakura_secret', 'sakuracloud-s3-backup-secret-access-key', vault_id=vault_id) }}
 
 - name: Join additional controllers
   hosts: cplane:!bootstrap

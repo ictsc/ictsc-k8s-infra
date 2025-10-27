@@ -54,6 +54,7 @@ module "ansible_inventory" {
 
   k8s_cluster_name  = local.k8s_cluster_name
   k8s_api_host      = local.k8s_api_host
+  vault_id          = sakura_secret_manager.vault.id
   nat64box_host     = module.k8s_nodes.nat64box_host
   cplane_hosts      = module.k8s_nodes.cplane_hosts
   worker_hosts      = module.k8s_nodes.worker_hosts
