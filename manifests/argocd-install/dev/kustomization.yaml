@@ -2,7 +2,19 @@ namespace: argo-system
 
 resources:
   - ../base
-  - app-of-apps.yaml
+
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      - op: add
+        path: /spec/source/directory
+        value:
+          include: dev.generated.yaml
+      - op: add
+        path: /spec/syncPolicy/automated
+        value:
+          enabled: true
 
 helmCharts:
   - name: argo-cd
@@ -11,5 +23,6 @@ helmCharts:
     releaseName: argo-cd
     namespace: argo-system
     valuesFile: ../base/argocd-values.yaml
-    additionalValuesFiles:
-      - argocd-values.yaml
+    valuesInline:
+      global:
+        domain: argocd.k8s-dev.ictsc.net
