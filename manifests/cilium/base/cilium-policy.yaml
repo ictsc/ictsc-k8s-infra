@@ -51,7 +51,11 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: hubble-relay-from-ui
+  name: hubble-relay
+  labels:
+    app.kubernetes.io/name: hubble-relay
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-relay
 spec:
   endpointSelector:
     matchLabels:

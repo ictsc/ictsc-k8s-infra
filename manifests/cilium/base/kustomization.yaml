@@ -5,4 +5,5 @@ resources:
   - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_referencegrants.yaml
   - https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/standard/gateway.networking.k8s.io_grpcroutes.yaml
   - cilium-policy.yaml
+  - cilium-host-policy.yaml
   - l2-announcement.yaml

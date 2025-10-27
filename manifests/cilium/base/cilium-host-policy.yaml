@@ -1,0 +1,44 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: host-firewall
+spec:
+  description: "Host firewall policy"
+  nodeSelector: {}
+  ingress:
+    - fromEntities:
+        - cluster
+    - fromEntities:
+        - remote-node
+      toPorts:
+        - ports:
+            # Health checks from other nodes
+            - port: "4240"
+              protocol: TCP
+    - toPorts:
+        - ports:
+            # SSH
+            - port: "22"
+              protocol: TCP
+    - icmps:
+        - fields:
+            - family: IPv6
+              type: DestinationUnreachable
+            - family: IPv6
+              type: PacketTooBig
+            - family: IPv6
+              type: TimeExceeded
+            - family: IPv6
+              type: ParameterProblem
+            - family: IPv6
+              type: EchoRequest
+            - family: IPv6
+              type: EchoReply
+            - family: IPv6
+              type: RouterAdvertisement
+            - family: IPv6
+              type: RouterSolicitation
+            - family: IPv6
+              type: NeighborAdvertisement
+            - family: IPv6
+              type: NeighborSolicitation

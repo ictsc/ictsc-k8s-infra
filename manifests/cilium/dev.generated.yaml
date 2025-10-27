@@ -11385,13 +11385,14 @@ data:
   enable-health-check-loadbalancer-ip: "false"
   enable-health-check-nodeport: "true"
   enable-health-checking: "true"
+  enable-host-firewall: "true"
   enable-hubble: "true"
   enable-ipv4: "false"
   enable-ipv4-big-tcp: "false"
   enable-ipv4-masquerade: "true"
   enable-ipv6: "true"
   enable-ipv6-big-tcp: "false"
-  enable-ipv6-masquerade: "true"
+  enable-ipv6-masquerade: "false"
   enable-k8s-networkpolicy: "true"
   enable-l2-announcements: "true"
   enable-l2-neigh-discovery: "true"
@@ -12815,7 +12816,11 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: hubble-relay-from-ui
+  labels:
+    app.kubernetes.io/name: hubble-relay
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble-relay
+  name: hubble-relay
   namespace: kube-system
 spec:
   endpointSelector:
