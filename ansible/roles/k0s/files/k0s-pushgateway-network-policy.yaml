@@ -1,0 +1,28 @@
+# Network Policies for k0s-managed pushgateway
+# FYI: https://docs.k0sproject.io/stable/system-monitoring/
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: k0s-pushgateway
+  namespace: k0s-system
+  labels:
+    app: k0s-observability
+    component: pushgateway
+spec:
+  endpointSelector:
+    matchLabels:
+      app: k0s-observability
+      component: pushgateway
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9091"
+              protocol: TCP
+          rules:
+            http:
+              - method: POST
+                path: /metrics/.+
+    #TODO(#24): Scraper からの GET /metrics を許可する
