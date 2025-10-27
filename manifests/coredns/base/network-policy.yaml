@@ -7,7 +7,11 @@ spec:
     matchLabels:
       k8s-app: kube-dns
   ingress:
-    - fromEndpoints: [{}] # all
+    - fromEndpoints:
+        # Allow from all namespaces
+        - matchExpressions:
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: dns
@@ -34,7 +38,7 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            "io.kubernetes.pod.namespace": kube-system
+            k8s:io.kubernetes.pod.namespace: kube-system
             k8s-app: kube-dns
       toPorts:
         - ports:
