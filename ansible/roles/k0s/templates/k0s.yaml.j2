@@ -11,6 +11,8 @@ spec:
     port: 6443
     extraArgs:
       authentication-config: "/etc/k0s/auth-config.yaml"
+      runtime-config: >-
+        admissionregistration.k8s.io/v1beta1=true
   konnectivity:
     adminPort: 8133
     agentPort: 8132
