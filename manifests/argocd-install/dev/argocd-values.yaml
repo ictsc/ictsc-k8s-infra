@@ -1,0 +1,11 @@
+global:
+  domain: argocd.k8s-dev.ictsc.net
+
+configs:
+  cm:
+    oidc.config: |
+      name: OIDC
+      issuer: https://dex.ictsc.net
+      enablePKCEAuthentication: true
+      clientID: $oidc-secret:clientID
+      clientSecret: $oidc-secret:clientSecret

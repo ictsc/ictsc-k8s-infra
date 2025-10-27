@@ -1,0 +1,14 @@
+namespace: argo-system
+
+resources:
+  - ../base
+
+helmCharts:
+  - name: argo-cd
+    repo: oci://ghcr.io/argoproj/argo-helm
+    version: 9.0.5
+    releaseName: argo-cd
+    namespace: argo-system
+    valuesFile: ../base/argocd-values.yaml
+    additionalValuesFiles:
+      - argocd-values.yaml

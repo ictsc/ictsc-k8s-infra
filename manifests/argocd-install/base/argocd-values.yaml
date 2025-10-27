@@ -1,0 +1,10 @@
+global:
+  networkPolicy:
+    create: true
+
+dex:
+  enabled: false
+
+configs:
+  cm:
+    admin.enabled: false
