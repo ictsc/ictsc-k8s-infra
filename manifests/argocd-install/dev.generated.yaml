@@ -26891,6 +26891,29 @@ spec:
           optional: true
         name: argocd-cmd-params-cm
 ---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  namespace: argo-system
+spec:
+  destination:
+    namespace: argo-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: dev.generated.yaml
+    path: manifests/argocd-apps
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
 apiVersion: batch/v1
 kind: Job
 metadata:

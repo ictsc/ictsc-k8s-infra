@@ -2,6 +2,7 @@ namespace: argo-system
 
 resources:
   - ../base
+  - app-of-apps.yaml
 
 helmCharts:
   - name: argo-cd

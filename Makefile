@@ -50,5 +50,5 @@ manifests: $(MANIFESTS)
 clean-manifests:
 	rm -f $(MANIFESTS)
 
-manifests/%/dev.generated.yaml: manifests/%/dev/* manifests/%/base/*
+manifests/%/dev.generated.yaml: manifests/%/dev/* $(wildcard manifests/%/base/*)
 	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $(@D)/dev > $@
