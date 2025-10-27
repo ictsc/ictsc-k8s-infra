@@ -15,11 +15,15 @@ l2podAnnouncements:
 l2announcements:
   enabled: true
 
+hostFirewall:
+  enabled: true
+
 ipv4:
   enabled: false
 ipv6:
   enabled: true
 ipv6NativeRoutingCIDR: 2000::/3
+enableIPv6Masquerade: false
 
 ipam:
   mode: kubernetes
