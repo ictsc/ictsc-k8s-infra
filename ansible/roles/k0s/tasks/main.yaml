@@ -80,3 +80,18 @@
     mode: "0644"
     owner: root
     group: root
+
+- name: Create k0s manifests directory for metrics
+  ansible.builtin.file:
+    path: /var/lib/k0s/manifests/metrics
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+- name: Deploy pushgateway network policy
+  ansible.builtin.copy:
+    src: k0s-pushgateway-network-policy.yaml
+    dest: /var/lib/k0s/manifests/metrics/k0s-pushgateway-network-policy.yaml
+    mode: "0644"
+    owner: root
+    group: root
