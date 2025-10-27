@@ -4,7 +4,6 @@ metadata:
   name: cert-manager
 spec:
   destination:
-    namespace: cert-manager
     server: https://kubernetes.default.svc
   project: default
   source:
@@ -16,7 +15,6 @@ spec:
   syncPolicy:
     automated:
       enabled: true
-      selfHeal: true
     syncOptions:
     - ServerSideApply=true
     - CreateNamespace=true
