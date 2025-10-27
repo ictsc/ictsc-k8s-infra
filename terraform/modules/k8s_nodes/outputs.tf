@@ -16,7 +16,7 @@ locals {
   ]
   k8s_lb_ipv6_cidr = local.k8s_subnets[0]
 
-  k8s_pod_cidr     = "${cidrhost(local.k8s_subnets[2], 0)}/108"
+  k8s_pod_cidr = "${cidrhost(local.k8s_subnets[2], 0)}/108"
 }
 
 output "nat64box_ipv6_cidr" {
