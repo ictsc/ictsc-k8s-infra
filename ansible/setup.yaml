@@ -33,8 +33,8 @@
     - cplane_firewall
     - k0s
   vars:
-    cplane_firewall_cplane_ipv6_subnet: "{{ cplane_ipv6_subnet }}"
-    cplane_firewall_worker_ipv6_subnet: "{{ worker_ipv6_subnet }}"
+    cplane_firewall_cplane_ipv6_subnet: "{{ cplane_ipv6_cidr }}"
+    cplane_firewall_worker_ipv6_subnet: "{{ worker_ipv6_cidr }}"
     k0s_cluster_name: "{{ k8s_cluster_name }}"
     k0s_k8s_api_host: "{{ k8s_api_host }}"
     k0s_k8s_api_ipv4: "{{ k8s_api_ipv4 }}"
@@ -42,7 +42,7 @@
     k0s_k8s_pod_cidr: "{{ k8s_pod_cidr }}"
     k0s_k8s_service_cidr: "{{ k8s_service_cidr }}"
     k0s_k8s_lb_ipv4_addrs: "{{ k8s_lb_ipv4_addrs }}"
-    k0s_k8s_lb_ipv6_subnet: "{{ k8s_lb_ipv6_subnet }}"
+    k0s_k8s_lb_ipv6_subnet: "{{ k8s_lb_ipv6_cidr }}"
     k0s_nat64_prefix: "{{ nat64_prefix }}"
 
 - name: Bootstrap first controller
