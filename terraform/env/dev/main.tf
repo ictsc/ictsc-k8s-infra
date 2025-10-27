@@ -33,6 +33,16 @@ module "k8s_nodes" {
   loadbalancer_ipv4_count = 4
 }
 
+data "sakura_kms" "ictsc_key" {
+  name = "ictsc"
+}
+
+resource "sakura_secret_manager" "vault" {
+  kms_key_id = data.sakura_kms.ictsc_key.id
+  name       = "k8s-dev"
+  tags       = ["k8s", "dev"]
+}
+
 output "ansible_inventory" {
   value = module.k8s_nodes.ansible_inventory
 }
