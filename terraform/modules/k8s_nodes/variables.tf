@@ -3,6 +3,12 @@ variable "env" {
   type        = string
 }
 
+variable "user" {
+  description = "The username for SSH access to the nodes."
+  type        = string
+  default     = "ictsc"
+}
+
 variable "tags" {
   description = "A list of tags to apply to the resources."
   type        = set(string)

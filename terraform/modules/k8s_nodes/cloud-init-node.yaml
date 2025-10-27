@@ -4,7 +4,7 @@ hostname: "{{ ds.meta_data.Server.Name }}"
 timezone: Asia/Tokyo
 ssh_pwauth: false
 users:
-  - name: ictsc
+  - name: ${user}
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh_authorized_keys: ["${ssh_key}"]

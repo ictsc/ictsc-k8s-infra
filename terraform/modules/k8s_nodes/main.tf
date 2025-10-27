@@ -34,10 +34,10 @@ locals {
     /* k8s */ 16,
   )
 
-  ipv6_nat64box_prefix = local.ipv6_subnets[1]
-  ipv6_cplane_prefix   = local.ipv6_subnets[2]
-  ipv6_worker_prefix   = local.ipv6_subnets[3]
-  ipv6_k8s_prefix      = local.ipv6_subnets[4]
+  nat64box_ipv6_cidr = local.ipv6_subnets[1]
+  cplane_ipv6_cidr   = local.ipv6_subnets[2]
+  worker_ipv6_cidr   = local.ipv6_subnets[3]
+  k8s_ipv6_cidr      = local.ipv6_subnets[4]
 }
 
 data "sakura_archive" "ubuntu" {
@@ -61,7 +61,7 @@ resource "sakura_server" "nat64box" {
     ip4_addr    = sakura_internet.internet.ip_addresses[0]
     ip4_mask    = sakura_internet.internet.netmask
     ip4_gateway = sakura_internet.internet.gateway
-    ip6_addr    = cidrhost(local.ipv6_nat64box_prefix, 1)
+    ip6_addr    = cidrhost(local.nat64box_ipv6_cidr, 1)
   })
 
   lifecycle {
@@ -95,8 +95,9 @@ resource "sakura_server" "control_plane" {
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
+    user     = var.user
     ssh_key  = data.sakura_ssh_key.ictsc.public_key
-    ip6_addr = cidrhost(local.ipv6_cplane_prefix, count.index)
+    ip6_addr = cidrhost(local.cplane_ipv6_cidr, count.index)
   })
 
   lifecycle {
@@ -131,8 +132,9 @@ resource "sakura_server" "worker" {
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
+    user     = var.user
     ssh_key  = data.sakura_ssh_key.ictsc.public_key
-    ip6_addr = cidrhost(local.ipv6_worker_prefix, count.index)
+    ip6_addr = cidrhost(local.worker_ipv6_cidr, count.index)
   })
 
   lifecycle {
@@ -153,44 +155,6 @@ resource "sakura_disk" "worker_root" {
     replace_triggered_by = [sakura_internet.internet.id]
   }
 }
-#
-# resource "sakura_server" "worker" {
-#   count  = var.worker_nodes
-#   tags   = var.tags
-#   name   = "k8s-${var.env}-worker-${count.index}"
-#   core   = 2
-#   memory = 4
-#
-#   disks = [
-#     sakura_disk.worker_root[count.index].id,
-#     sakura_disk.worker_data[count.index].id,
-#   ]
-#   network_interface = [{
-#     upstream        = sakura_internet.internet.switch_id
-#     user_ip_address = sakura_internet.internet.ip_addresses[local.worker_ip_base + count.index]
-#   }]
-#
-#   user_data = templatefile("${path.module}/cloud-init-worker.yaml.tftpl", {
-#     password_hash = var.password_hash
-#     ssh_keys      = [data.sakura_ssh_key.ictsc.public_key]
-#     ip4_addr      = "${sakura_internet.internet.ip_addresses[local.worker_ip_base + count.index]}/${sakura_internet.internet.netmask}"
-#     ip6_addr      = "${local.ipv6_node_prefix}${sakura_internet.internet.ip_addresses[local.worker_ip_base + count.index]}/64"
-#   })
-#
-#   lifecycle {
-#     replace_triggered_by = [sakura_disk.worker_root[count.index].id]
-#   }
-# }
-#
-# resource "sakura_disk" "worker_root" {
-#   count             = var.worker_nodes
-#   tags              = var.tags
-#   name              = "k8s-${var.env}-worker-${count.index}-root"
-#   description       = "k8s worker root disk"
-#   plan              = "ssd"
-#   size              = 20
-#   source_archive_id = data.sakura_archive.debian.id
-# }
 
 resource "sakura_disk" "worker_data" {
   count       = var.worker_nodes
