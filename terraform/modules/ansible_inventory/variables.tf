@@ -1,3 +1,8 @@
+variable "vault_id" {
+  description = "Sakura Cloud Secret Manager Vault ID."
+  type        = string
+}
+
 variable "nat64box_host" {
   description = "NAT64 box host information."
   type = object({

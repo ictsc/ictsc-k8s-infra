@@ -25,6 +25,7 @@ locals {
 
     all = {
       vars = {
+        vault_id         = var.vault_id
         nat64_prefix     = var.nat64_prefix
         cplane_ipv6_cidr = var.cplane_ipv6_cidr
         worker_ipv6_cidr = var.worker_ipv6_cidr
