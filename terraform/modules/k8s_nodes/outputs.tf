@@ -1,86 +1,65 @@
 locals {
-  k8s_subnets = cidrsubnets(local.ipv6_k8s_prefix,
+  k8s_subnets = cidrsubnets(local.k8s_ipv6_cidr,
     /* loadbalancer */ 32,
     /* apiserver */ 32,
     /* pod */ 16,
   )
 
   # kube-apiserver
-  k8s_cluster_name = "ictsc-${var.env}"
-  k8s_api_host     = "k8s-${var.env}.ictsc.net"
-  k8s_api_ipv4     = element(sakura_internet.internet.ip_addresses, -1)
-  k8s_api_ipv6     = cidrhost(local.k8s_subnets[1], parseint("1008", 16)) # k8?
+  k8s_api_ipv4 = element(sakura_internet.internet.ip_addresses, -1)
+  k8s_api_ipv6 = cidrhost(local.k8s_subnets[1], parseint("1008", 16)) # k8?
 
   # LoadBalancer service
   k8s_lb_ipv4_addrs = [
     for i in range(var.loadbalancer_ipv4_count) :
     element(sakura_internet.internet.ip_addresses, -2 - i)
   ]
-  k8s_lb_ipv6_subnet = local.k8s_subnets[0]
+  k8s_lb_ipv6_cidr = local.k8s_subnets[0]
 
   k8s_pod_cidr     = "${cidrhost(local.k8s_subnets[2], 0)}/108"
-  k8s_service_cidr = "fd01::/108"
+}
 
-  ansible_inventory = {
-    "_meta" = {
-      hostvars = merge({
-        nat64box = {
-          ansible_host = cidrhost(local.ipv6_nat64box_prefix, 1),
-        } },
-        { for i in range(var.cplane_nodes) : "cplane-${i}" => {
-          ansible_host = cidrhost(local.ipv6_cplane_prefix, i)
-        } },
-        { for i in range(var.worker_nodes) : "worker-${i}" => {
-          ansible_host = cidrhost(local.ipv6_worker_prefix, i)
-      } })
-    }
+output "nat64box_ipv6_cidr" {
+  description = "IPv6 CIDR for the NAT64 box."
+  value       = local.nat64box_ipv6_cidr
+}
 
-    all = {
-      vars = {
-        ansible_user       = "ictsc"
-        nat64_prefix       = "64:ff9b::"
-        cplane_ipv6_subnet = local.ipv6_cplane_prefix
-        worker_ipv6_subnet = local.ipv6_worker_prefix
-        proxy_ipv4_addrs = flatten([
-          [local.k8s_api_ipv4], local.k8s_lb_ipv4_addrs
-        ])
-      }
-    }
-    nat64box = {
-      hosts = ["nat64box"]
-    }
+output "cplane_ipv6_cidr" {
+  description = "IPv6 CIDR for the control plane nodes."
+  value       = local.cplane_ipv6_cidr
+}
 
-    kubernetes = {
-      vars = {
-        k8s_cluster_name   = local.k8s_cluster_name
-        k8s_api_host       = local.k8s_api_host
-        k8s_api_ipv4       = local.k8s_api_ipv4
-        k8s_api_ipv6       = local.k8s_api_ipv6
-        k8s_service_cidr   = local.k8s_service_cidr
-        k8s_pod_cidr       = local.k8s_pod_cidr
-        k8s_lb_ipv4_addrs  = local.k8s_lb_ipv4_addrs
-        k8s_lb_ipv6_subnet = local.k8s_lb_ipv6_subnet
-      }
-      children = ["bootstrap", "cplane", "worker"]
-    }
-    bootstrap = { hosts = ["cplane-0"] }
-    cplane = {
-      hosts = [for i in range(var.cplane_nodes) : "cplane-${i}"]
-    }
-    worker = {
-      hosts = [for i in range(var.worker_nodes) : "worker-${i}"]
-    }
+output "worker_ipv6_cidr" {
+  description = "IPv6 CIDR for the worker nodes."
+  value       = local.worker_ipv6_cidr
+}
+
+output "nat64box_host" {
+  description = "NAT64 box host information."
+  value = {
+    address = cidrhost(local.nat64box_ipv6_cidr, 1)
+    user    = var.user
   }
 }
 
-output "ansible_inventory" {
-  description = "Ansible inventory in JSON format."
-  value       = jsonencode(local.ansible_inventory)
+output "cplane_hosts" {
+  description = "List of control plane host information."
+  value = [
+    for i in range(var.cplane_nodes) : {
+      address = cidrhost(local.cplane_ipv6_cidr, i)
+      user    = var.user
+    }
+  ]
 }
 
-output "k8s_api_host" {
-  description = "Kubernetes API server hostname."
-  value       = local.k8s_api_host
+output "worker_hosts" {
+  description = "List of worker host information."
+  value = [
+    for i in range(var.worker_nodes) : {
+      address = cidrhost(local.worker_ipv6_cidr, i)
+      user    = var.user
+    }
+  ]
 }
 
 output "k8s_api_ipv4" {
@@ -93,12 +72,17 @@ output "k8s_api_ipv6" {
   value       = local.k8s_api_ipv6
 }
 
+output "k8s_pod_cidr" {
+  description = "Kubernetes pod CIDR."
+  value       = local.k8s_pod_cidr
+}
+
 output "k8s_lb_ipv4_addrs" {
   description = "Kubernetes LoadBalancer service IPv4 addresses."
   value       = local.k8s_lb_ipv4_addrs
 }
 
-output "k8s_lb_ipv6_subnet" {
-  description = "Kubernetes LoadBalancer service IPv6 subnet."
-  value       = local.k8s_lb_ipv6_subnet
+output "k8s_lb_ipv6_cidr" {
+  description = "Kubernetes LoadBalancer service IPv6 CIDR."
+  value       = local.k8s_lb_ipv6_cidr
 }
