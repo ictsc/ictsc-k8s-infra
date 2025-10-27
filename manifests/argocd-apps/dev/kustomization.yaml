@@ -1,2 +1,15 @@
 resources:
-  - cert-manager.yaml
+  - ../base
+
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      - op: add
+        path: /spec/source/directory
+        value:
+          include: dev.generated.yaml
+      - op: add
+        path: /spec/syncPolicy/automated
+        value:
+          enabled: true

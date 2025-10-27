@@ -1,20 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: app-of-apps
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
+    namespace: argo-system
   source:
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
-    path: manifests/cert-manager
-    directory:
-      include: dev.generated.yaml
+    path: manifests/argocd-apps
   syncPolicy:
-    automated:
-      enabled: true
     syncOptions:
       - ServerSideApply=true
-      - CreateNamespace=true

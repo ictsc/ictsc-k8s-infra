@@ -135,6 +135,12 @@ These environment variables must be set before running infrastructure commands.
 
 7. **Cluster Reset**: `ansible/reset_k0s.yaml` playbook can reset the cluster. Use with caution.
 
+8. **Git Commits**: Always verify staged files before committing:
+   - Do NOT use `git add -A` (includes untracked files)
+   - Run `git status` and `git diff --cached` to verify what will be committed
+   - Only commit explicitly staged files
+   - Use `git restore --staged <file>` to unstage unwanted files
+
 ## File Organization Summary
 
 - **`terraform/env/dev/`**: Environment-specific Terraform entry point
@@ -150,3 +156,4 @@ These environment variables must be set before running infrastructure commands.
 - **Node Counts**: Configure `cplane_nodes` and `worker_nodes` in `terraform/env/dev/main.tf`.
 - **Network CIDR**: Modify variables passed to `k8s_nodes` module.
 - **Cilium Configuration**: Edit `manifests/cilium/dev/kustomization.yaml` to customize Helm values.
+- **Manifest Generation**: Build manifests using `make manifests` to generate the required manifest files.
