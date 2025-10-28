@@ -1,0 +1,42 @@
+---
+- name: Ensure containerd.d directory exists
+  ansible.builtin.file:
+    path: /etc/k0s/containerd.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Ensure containerd.d/certs.d directory exists
+  ansible.builtin.file:
+    path: /etc/k0s/containerd.d/certs.d
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Deploy cri-registry.toml
+  ansible.builtin.template:
+    src: cri-registry.toml.j2
+    dest: /etc/k0s/containerd.d/cri-registry.toml
+    mode: "0644"
+    owner: root
+    group: root
+  notify: Restart k0s worker
+
+- name: Create docker.io registry mirror directory
+  ansible.builtin.file:
+    path: /etc/k0s/containerd.d/certs.d/docker.io
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Deploy docker.io mirror hosts.toml
+  ansible.builtin.template:
+    src: hosts.toml.j2
+    dest: /etc/k0s/containerd.d/certs.d/docker.io/hosts.toml
+    mode: "0644"
+    owner: root
+    group: root
+  notify: Restart k0s worker
