@@ -1,0 +1,9 @@
+labels:
+  - pairs:
+      app.kubernetes.io/name: sakuracloud-provider
+    includeSelectors: true
+    includeTemplates: true
+
+resources:
+  - rbac.yaml
+  - daemonset.yaml

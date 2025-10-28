@@ -110,3 +110,18 @@
     mode: "0644"
     owner: root
     group: root
+
+- name: Ensure secret manifest directory exists
+  ansible.builtin.file:
+    path: /var/lib/k0s/manifests/secrets
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+- name: Deploy sakuracloud secret manifest
+  ansible.builtin.template:
+    src: sakuracloud-secret.yaml.j2
+    dest: /var/lib/k0s/manifests/secrets/sakuracloud-secret.yaml
+    mode: "0600"
+    owner: root
+    group: root

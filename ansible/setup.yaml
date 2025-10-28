@@ -42,6 +42,10 @@
     k0s_k8s_lb_ipv4_addrs: "{{ k8s_lb_ipv4_addrs }}"
     k0s_k8s_lb_ipv6_subnet: "{{ k8s_lb_ipv6_cidr }}"
     k0s_nat64_prefix: "{{ nat64_prefix }}"
+    k0s_sakuracloud_access_token: >-
+      {{ lookup('sakura_secret', 'sakuracloud-secret-access-token', vault_id=vault_id) }}
+    k0s_sakuracloud_access_token_secret: >-
+      {{ lookup('sakura_secret', 'sakuracloud-secret-access-token-secret', vault_id=vault_id) }}
 
 - name: Bootstrap first controller
   hosts: cplane:&bootstrap

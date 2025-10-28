@@ -1,0 +1,11 @@
+namespace: kube-system
+namePrefix: csi-secrets-store-
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: csi-secrets-store
+    includeSelectors: true
+    includeTemplates: true
+
+resources:
+  - ./sakuracloud-provider
