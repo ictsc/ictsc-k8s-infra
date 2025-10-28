@@ -25,6 +25,7 @@ metadata:
   name: csi-secrets-store
 spec:
   destination:
+    namespace: kube-system
     server: https://kubernetes.default.svc
   project: default
   source:
