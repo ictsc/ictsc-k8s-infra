@@ -1,0 +1,11 @@
+syncSecret:
+  enabled: true
+
+enableSecretRotaion: true
+rotationPollInterval: 15m
+
+linux:
+  kubeletRootDir: /var/lib/k0s/kubelet
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8095"
