@@ -70,3 +70,9 @@
   become: true
   roles:
     - join_worker
+
+- name: Setup worker nodes
+  hosts: worker
+  become: true
+  roles:
+    - setup_worker
