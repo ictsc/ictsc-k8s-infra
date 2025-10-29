@@ -14444,6 +14444,14 @@ spec:
           type: RuntimeDefault
       serviceAccountName: cert-manager-webhook
 ---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+  namespace: cert-manager
+spec:
+  selfSigned: {}
+---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
