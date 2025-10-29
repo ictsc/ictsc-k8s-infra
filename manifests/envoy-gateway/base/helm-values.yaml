@@ -1,0 +1,13 @@
+# Disable certgen
+certgen:
+  job:
+    annotations:
+      config.kubernetes.io/local-config: "true"
+  rbac:
+    annotations:
+      config.kubernetes.io/local-config: "true"
+
+topologyInjector:
+  enabled: true
+  annotations:
+    cert-manager.io/inject-ca-from: envoy-gateway-system/envoy-gateway-ca
