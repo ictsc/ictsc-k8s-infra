@@ -6,7 +6,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: envoy-gateway-system
   source:
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main

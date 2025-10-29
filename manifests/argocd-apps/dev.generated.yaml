@@ -46,7 +46,7 @@ metadata:
   name: envoy-gateway
 spec:
   destination:
-    namespace: kube-system
+    namespace: envoy-gateway-system
     server: https://kubernetes.default.svc
   project: default
   source:
