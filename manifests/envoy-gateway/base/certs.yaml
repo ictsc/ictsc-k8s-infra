@@ -1,0 +1,80 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-gateway-ca
+spec:
+  isCA: true
+  commonName: envoy-gateway
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-issuer
+  secretName: envoy-gateway-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: envoy-gateway-issuer
+spec:
+  ca:
+    secretName: envoy-gateway-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-gateway
+spec:
+  commonName: envoy-gateway
+  dnsNames:
+    - envoy-gateway
+    - envoy-gateway.envoy-gateway-system
+    - envoy-gateway.envoy-gateway-system.svc
+    - envoy-gateway.envoy-gateway-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: envoy-gateway-issuer
+  usages:
+    - digital signature
+    - content commitment
+    - data encipherment
+    - key encipherment
+  secretName: envoy-gateway
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy
+spec:
+  commonName: "*"
+  dnsNames:
+    - "*.envoy-gateway-system"
+  issuerRef:
+    kind: Issuer
+    name: envoy-gateway-issuer
+  usages:
+    - digital signature
+    - content commitment
+    - data encipherment
+    - key encipherment
+  secretName: envoy
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: envoy-rate-limit
+spec:
+  commonName: "*"
+  dnsNames:
+    - "*.envoy-gateway-system"
+  issuerRef:
+    kind: Issuer
+    name: envoy-gateway-issuer
+  usages:
+    - digital signature
+    - content commitment
+    - data encipherment
+    - key encipherment
+  secretName: envoy-rate-limit
