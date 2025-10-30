@@ -2,6 +2,8 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: web
+  annotations:
+    cert-manager.io/issuer: letsencrypt
 spec:
   gatewayClassName: envoy-gateway
   infrastructure:
