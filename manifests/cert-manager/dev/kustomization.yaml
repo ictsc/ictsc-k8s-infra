@@ -1,3 +1,10 @@
 resources:
   - ../base
-  - https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
+
+helmCharts:
+  - name: cert-manager
+    repo: https://charts.jetstack.io
+    version: v1.19.1
+    releaseName: cert-manager
+    namespace: cert-manager
+    valuesFile: ../base/cert-manager-values.yaml
