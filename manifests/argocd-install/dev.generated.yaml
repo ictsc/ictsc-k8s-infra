@@ -24939,7 +24939,8 @@ metadata:
 ---
 apiVersion: v1
 data:
-  policy.csv: ""
+  policy.csv: |
+    g, ictsc:ictsc2025, role:admin
   policy.default: ""
   policy.matchMode: glob
   scopes: '[groups]'
