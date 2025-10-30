@@ -1,0 +1,11 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      kind: HTTPRoute
+      name: argocd-server
+    patch: |-
+      - op: add
+        path: /spec/hostnames/-
+        value: argocd.k8s-dev.ictsc.net
