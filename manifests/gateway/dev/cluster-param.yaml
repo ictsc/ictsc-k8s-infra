@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-param
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  web-gateway-ips: 2001:e42:407:103c:1::80,64:ff9b::163.43.176.221
+  web-gateway-replicas: 1
+  k8s-base-host: k8s-dev.ictsc.net

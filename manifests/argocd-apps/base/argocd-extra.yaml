@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: argocd-extra
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
+    namespace: argo-system
   source:
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
-    path: manifests/cert-manager
+    path: manifests/argocd-extra
   syncPolicy:
+    syncOptions: []
     automated: {}
-    syncOptions:
-      - CreateNamespace=true

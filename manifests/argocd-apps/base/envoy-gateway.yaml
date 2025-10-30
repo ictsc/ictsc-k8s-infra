@@ -12,6 +12,6 @@ spec:
     targetRevision: main
     path: manifests/envoy-gateway
   syncPolicy:
+    automated: {}
     syncOptions:
-      - ServerSideApply=true
       - CreateNamespace=true

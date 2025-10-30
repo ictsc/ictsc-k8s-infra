@@ -1,0 +1,17 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      kind: HTTPRoute
+      name: argocd-server
+    patch: |-
+      - op: add
+        path: /spec/hostnames/-
+        value: argocd.k8s-dev.ictsc.net
+  - target:
+      kind: SecretProviderClass
+    patch: |-
+      - op: add
+        path: /spec/parameters/vaultID
+        value: "113702555287"

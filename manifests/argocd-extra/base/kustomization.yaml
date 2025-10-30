@@ -1,0 +1,5 @@
+namespace: argo-system
+
+resources:
+  - server-httproute.yaml
+  - secret.yaml

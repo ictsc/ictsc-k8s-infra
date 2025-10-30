@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt
+  namespace: gateway
+spec:
+  acme:
+    email: cert@icttoracon.net
+    privateKeySecretRef:
+      name: letsencrypt
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        gatewayHTTPRoute:
+          parentRefs:
+          - kind: Gateway
+            name: web
+          podTemplate:
+            metadata:
+              labels:
+                app.kubernetes.io/name: cm-acme-http-solver
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+  namespace: gateway
+spec:
+  acme:
+    email: cert@icttoracon.net
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        gatewayHTTPRoute:
+          parentRefs:
+          - kind: Gateway
+            name: web
+          podTemplate:
+            metadata:
+              labels:
+                app.kubernetes.io/name: cm-acme-http-solver
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: gateway-web-proxy
+  namespace: gateway
+spec:
+  description: Allow internet access to web Gateway Proxies in the gateway namespace
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+      gateway.envoyproxy.io/owning-gateway-name: web
+      gateway.envoyproxy.io/owning-gateway-namespace: gateway
+      k8s:io.kubernetes.pod.namespace: envoy-gateway-system
+  ingress:
+  - fromEntities:
+    - all
+    toPorts:
+    - ports:
+      - port: "10080"
+        protocol: TCP
+      - port: "10443"
+        protocol: ANY
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-acme-http-solver
+  namespace: gateway
+spec:
+  endpointSelector:
+    matchLabels:
+      acme.cert-manager.io/http01-solver: "true"
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/component: proxy
+        gateway.envoyproxy.io/owning-gateway-name: web
+        gateway.envoyproxy.io/owning-gateway-namespace: gateway
+        k8s:io.kubernetes.pod.namespace: envoy-gateway-system
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: web
+  namespace: gateway
+spec:
+  bootstrap:
+    jsonPatches:
+    - op: replace
+      path: /admin/address/socket_address/address
+      value: '::'
+    - op: add
+      path: /admin/address/socket_address/ipv4_compat
+      value: true
+    type: JSONPatch
+  ipFamily: IPv6
+  provider:
+    kubernetes:
+      envoyDeployment:
+        replicas: 1
+      envoyService:
+        annotations:
+          lbipam.cilium.io/ips: 2001:e42:407:103c:1::80,64:ff9b::163.43.176.221
+          service.cilium.io/forwarding-mode: dsr
+        externalTrafficPolicy: Cluster
+        labels:
+          k8s.ictsc.net/lb-ipv4: "true"
+    type: Kubernetes
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+  name: web
+  namespace: gateway
+spec:
+  gatewayClassName: envoy-gateway
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: web
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: All
+    name: http
+    port: 80
+    protocol: HTTP
+  - allowedRoutes:
+      namespaces:
+        from: All
+    hostname: argocd.k8s-dev.ictsc.net
+    name: argocd-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: argocd-tls
+      mode: Terminate

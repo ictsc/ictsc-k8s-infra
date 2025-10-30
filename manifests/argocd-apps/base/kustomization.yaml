@@ -1,4 +1,19 @@
+namespace: argo-system
+
 resources:
   - cert-manager.yaml
   - csi-secrets-store.yaml
   - envoy-gateway.yaml
+  - gateway.yaml
+  - argocd-extra.yaml
+
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      - op: add
+        path: /spec/syncPolicy/syncOptions/-
+        value: ServerSideApply=true
+      - op: add
+        path: /spec/syncPolicy/automated/enabled
+        value: true

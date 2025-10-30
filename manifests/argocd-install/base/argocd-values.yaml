@@ -6,6 +6,8 @@ dex:
   enabled: false
 
 configs:
+  params:
+    server.insecure: true
   cm:
     admin.enabled: false
     oidc.config: |
@@ -14,3 +16,6 @@ configs:
       enablePKCEAuthentication: true
       clientID: $oidc-secret:clientID
       clientSecret: $oidc-secret:clientSecret
+  rbac:
+    policy.csv: |
+      g, ictsc:ictsc2025, role:admin

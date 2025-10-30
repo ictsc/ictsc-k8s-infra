@@ -1,7 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: argocd-extra
+  namespace: argo-system
+spec:
+  destination:
+    namespace: argo-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: dev.generated.yaml
+    path: manifests/argocd-extra
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: cert-manager
+  namespace: argo-system
 spec:
   destination:
     server: https://kubernetes.default.svc
@@ -16,13 +39,14 @@ spec:
     automated:
       enabled: true
     syncOptions:
-    - ServerSideApply=true
     - CreateNamespace=true
+    - ServerSideApply=true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: csi-secrets-store
+  namespace: argo-system
 spec:
   destination:
     namespace: kube-system
@@ -44,6 +68,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: envoy-gateway
+  namespace: argo-system
 spec:
   destination:
     namespace: envoy-gateway-system
@@ -59,5 +84,28 @@ spec:
     automated:
       enabled: true
     syncOptions:
-    - ServerSideApply=true
     - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: argo-system
+spec:
+  destination:
+    namespace: gateway
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: dev.generated.yaml
+    path: manifests/gateway
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

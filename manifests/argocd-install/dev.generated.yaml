@@ -24890,6 +24890,7 @@ data:
   repo.server: argo-cd-argocd-repo-server:8081
   reposerver.log.format: text
   reposerver.log.level: info
+  server.insecure: "true"
   server.log.format: text
   server.log.level: info
   server.repo.server.strict.tls: "false"
@@ -24938,7 +24939,8 @@ metadata:
 ---
 apiVersion: v1
 data:
-  policy.csv: ""
+  policy.csv: |
+    g, ictsc:ictsc2025, role:admin
   policy.default: ""
   policy.matchMode: glob
   scopes: '[groups]'
@@ -25148,7 +25150,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cmd-params: 17881b2322bd27b536262b853a122f1354b29f1a1468f3c32eb45f7e09d08030
+        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: applicationset-controller
         app.kubernetes.io/instance: argo-cd
@@ -25433,7 +25435,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cmd-params: 17881b2322bd27b536262b853a122f1354b29f1a1468f3c32eb45f7e09d08030
+        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: notifications-controller
         app.kubernetes.io/instance: argo-cd
@@ -25651,7 +25653,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
-        checksum/cmd-params: 17881b2322bd27b536262b853a122f1354b29f1a1468f3c32eb45f7e09d08030
+        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: repo-server
         app.kubernetes.io/instance: argo-cd
@@ -26063,7 +26065,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
-        checksum/cmd-params: 17881b2322bd27b536262b853a122f1354b29f1a1468f3c32eb45f7e09d08030
+        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: server
         app.kubernetes.io/instance: argo-cd
@@ -26525,7 +26527,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
-        checksum/cmd-params: 17881b2322bd27b536262b853a122f1354b29f1a1468f3c32eb45f7e09d08030
+        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: application-controller
         app.kubernetes.io/instance: argo-cd
