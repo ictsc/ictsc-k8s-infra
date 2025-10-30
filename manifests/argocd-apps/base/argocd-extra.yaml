@@ -1,16 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: envoy-gateway
+  name: argocd-extra
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: envoy-gateway-system
+    namespace: argo-system
   source:
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
-    path: manifests/envoy-gateway
+    path: manifests/argocd-extra
   syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
+    syncOptions: []

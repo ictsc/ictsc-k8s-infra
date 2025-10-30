@@ -12,5 +12,4 @@ spec:
     path: manifests/cert-manager
   syncPolicy:
     syncOptions:
-      - ServerSideApply=true
       - CreateNamespace=true

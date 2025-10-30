@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: envoy-gateway
+  name: gateway
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: envoy-gateway-system
+    namespace: gateway
   source:
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
-    path: manifests/envoy-gateway
+    path: manifests/gateway
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
