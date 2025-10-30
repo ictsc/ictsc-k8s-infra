@@ -38800,25 +38800,6 @@ spec:
       - port: webhook
         protocol: TCP
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: envoy-proxy
-  namespace: envoy-gateway-system
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: proxy
-      app.kubernetes.io/managed-by: envoy-gateway
-      app.kubernetes.io/name: envoy
-  ingress:
-  - fromEntities:
-    - all
-    toPorts:
-    - ports:
-      - port: "10080"
-        protocol: TCP
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
