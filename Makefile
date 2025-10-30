@@ -42,6 +42,8 @@ ansible-validate:
 # Kubernetes manifest build pattern rule
 MANIFESTS_DIR = $(wildcard manifests/*)
 MANIFESTS = $(addsuffix /dev.generated.yaml,$(MANIFESTS_DIR))
+CHARTS_DEV = $(addsuffix /dev/charts,$(MANIFESTS_DIR))
+CHARTS_BASE = $(addsuffix /base/charts,$(MANIFESTS_DIR))
 
 .PHONY: manifests clean-manifests
 
@@ -49,7 +51,7 @@ manifests: $(MANIFESTS)
 
 clean-manifests:
 	rm -f $(MANIFESTS)
-	rm -rf manifests/*/dev/charts manifests/*/base/charts
+	rm -rf $(CHARTS_DEV) $(CHARTS_BASE)
 
 manifests/%/dev.generated.yaml: manifests/%/dev/* $(wildcard manifests/%/base/*)
 	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $(@D)/dev > $@
