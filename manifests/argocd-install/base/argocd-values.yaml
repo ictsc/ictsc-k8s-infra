@@ -6,6 +6,8 @@ dex:
   enabled: false
 
 configs:
+  params:
+    server.insecure: true
   cm:
     admin.enabled: false
     oidc.config: |
