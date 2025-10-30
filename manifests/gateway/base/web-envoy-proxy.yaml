@@ -1,0 +1,28 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: web
+spec:
+  ipFamily: IPv6
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 1
+      envoyService:
+        labels:
+          k8s.ictsc.net/lb-ipv4: "true"
+        annotations:
+          service.cilium.io/forwarding-mode: dsr
+        # Default Policy (Local) is incompatible with Cilium L2 LB
+        externalTrafficPolicy: Cluster
+  bootstrap:
+    type: JSONPatch
+    jsonPatches:
+      # Enable Admin API Access
+      - op: replace
+        path: /admin/address/socket_address/address
+        value: "::"
+      - op: add
+        path: /admin/address/socket_address/ipv4_compat
+        value: true

@@ -1,0 +1,7 @@
+namespace: gateway
+
+resources:
+  - namespace.yaml
+  - web-gateway.yaml
+  - web-envoy-proxy.yaml
+  - web-network-policy.yaml

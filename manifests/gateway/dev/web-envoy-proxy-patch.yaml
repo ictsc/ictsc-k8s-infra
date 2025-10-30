@@ -1,0 +1,11 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: web
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        annotations:
+          lbipam.cilium.io/ips: "2001:e42:407:103c:1::80,64:ff9b::163.43.176.221"

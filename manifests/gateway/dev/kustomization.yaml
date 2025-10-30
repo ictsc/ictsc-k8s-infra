@@ -1,0 +1,9 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: web
+    path: web-envoy-proxy-patch.yaml
