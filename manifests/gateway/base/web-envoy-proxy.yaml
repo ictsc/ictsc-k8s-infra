@@ -8,7 +8,7 @@ spec:
     type: Kubernetes
     kubernetes:
       envoyDeployment:
-        replicas: 1
+        replicas: 0 # Replace to $web-gateway-replicas
       envoyService:
         labels:
           k8s.ictsc.net/lb-ipv4: "true"

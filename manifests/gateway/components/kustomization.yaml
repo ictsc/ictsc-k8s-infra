@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+replacements:
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.web-gateway-ips
+    targets:
+      - select:
+          kind: EnvoyProxy
+          name: web
+        options:
+          create: true
+        fieldPaths:
+          - spec.provider.kubernetes.envoyService.annotations.[lbipam.cilium.io/ips]
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.web-gateway-replicas
+    targets:
+      - select:
+          kind: EnvoyProxy
+          name: web
+        fieldPaths:
+          - spec.provider.kubernetes.envoyDeployment.replicas
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.k8s-base-host
+    targets:
+      - select:
+          kind: Gateway
+          name: web
+        options:
+          delimiter: "."
+          index: 1
+        fieldPaths:
+          - spec.listeners.[name=argocd-https].hostname

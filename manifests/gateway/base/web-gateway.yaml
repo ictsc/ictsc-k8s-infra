@@ -18,3 +18,14 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: argocd-https
+      hostname: argocd.$k8s-base-host
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: argocd-tls
