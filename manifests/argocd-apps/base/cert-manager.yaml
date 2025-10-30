@@ -11,5 +11,6 @@ spec:
     targetRevision: main
     path: manifests/cert-manager
   syncPolicy:
+    automated: {}
     syncOptions:
       - CreateNamespace=true

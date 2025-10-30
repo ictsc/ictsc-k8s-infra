@@ -9,7 +9,3 @@ patches:
         path: /spec/source/directory
         value:
           include: dev.generated.yaml
-      - op: add
-        path: /spec/syncPolicy/automated
-        value:
-          enabled: true

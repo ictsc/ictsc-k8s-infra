@@ -14,3 +14,6 @@ patches:
       - op: add
         path: /spec/syncPolicy/syncOptions/-
         value: ServerSideApply=true
+      - op: add
+        path: /spec/syncPolicy/automated/enabled
+        value: true

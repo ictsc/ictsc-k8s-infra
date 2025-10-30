@@ -13,3 +13,4 @@ spec:
     path: manifests/argocd-extra
   syncPolicy:
     syncOptions: []
+    automated: {}
