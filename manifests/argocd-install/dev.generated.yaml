@@ -24760,8 +24760,9 @@ data:
     name: OIDC
     issuer: https://dex.ictsc.net
     enablePKCEAuthentication: true
-    clientID: $oidc-secret:clientID
+    clientID: $oidc.clientID
     clientSecret: $oidc-secret:clientSecret
+    cliClientID: $oidc.cliClientID
   resource.customizations.ignoreResourceUpdates.ConfigMap: |
     jqPathExpressions:
       # Ignore the cluster-autoscaler status
@@ -25016,6 +25017,9 @@ stringData: null
 type: Opaque
 ---
 apiVersion: v1
+data:
+  oidc.cliClientID: Z3Nmd2xtcnM0anVsZTd6YWx1NmM3NmJyag==
+  oidc.clientID: aHdqcWtiY3J5YmZuM2RwM3Fjemp3ZWI0eQ==
 kind: Secret
 metadata:
   labels:
@@ -25652,7 +25656,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
+        checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
         checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: repo-server
@@ -26064,7 +26068,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
+        checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
         checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: server
@@ -26526,7 +26530,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: e7e465b8784cdbd6d65c90e5f150be671e322defa287f5389d63c0298ff4eeb6
+        checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
         checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
       labels:
         app.kubernetes.io/component: application-controller
