@@ -12,7 +12,8 @@ spec:
       - http01:
           gatewayHTTPRoute:
             parentRefs:
-              - kind: Gateway
+              - group: gateway.networking.k8s.io
+                kind: Gateway
                 name: web
             podTemplate:
               metadata:
@@ -33,7 +34,8 @@ spec:
       - http01:
           gatewayHTTPRoute:
             parentRefs:
-              - kind: Gateway
+              - group: gateway.networking.k8s.io
+                kind: Gateway
                 name: web
             podTemplate:
               metadata:

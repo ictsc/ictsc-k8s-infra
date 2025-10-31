@@ -4,7 +4,9 @@ metadata:
   name: argocd-server
 spec:
   parentRefs:
-    - name: web
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: web
       namespace: gateway
   hostnames: []
   rules:
@@ -17,3 +19,4 @@ spec:
           kind: Service
           name: argo-cd-argocd-server
           port: 80
+          weight: 1

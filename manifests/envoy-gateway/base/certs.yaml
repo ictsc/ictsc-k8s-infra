@@ -34,6 +34,7 @@ spec:
     - envoy-gateway.envoy-gateway-system.svc
     - envoy-gateway.envoy-gateway-system.svc.cluster.local
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   usages:
@@ -52,6 +53,7 @@ spec:
   dnsNames:
     - "*.envoy-gateway-system"
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   usages:
@@ -70,6 +72,7 @@ spec:
   dnsNames:
     - "*.envoy-gateway-system"
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   usages:

@@ -38695,6 +38695,7 @@ spec:
   dnsNames:
   - '*.envoy-gateway-system'
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   secretName: envoy
@@ -38717,6 +38718,7 @@ spec:
   - envoy-gateway.envoy-gateway-system.svc
   - envoy-gateway.envoy-gateway-system.svc.cluster.local
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   secretName: envoy-gateway
@@ -38753,6 +38755,7 @@ spec:
   dnsNames:
   - '*.envoy-gateway-system'
   issuerRef:
+    group: cert-manager.io
     kind: Issuer
     name: envoy-gateway-issuer
   secretName: envoy-rate-limit
