@@ -17,3 +17,10 @@ configs:
       clientID: $oidc.clientID
       clientSecret: $oidc-secret:clientSecret
       cliClientID: $oidc.cliClientID
+
+server:
+  service:
+    # Insecure モードでサーバーを動作させるので、HTTPS ポートを gRPC 用に使う
+    servicePortHttps: 81
+    servicePortHttpsName: grpc
+    servicePortHttpsAppProtocol: kubernetes.io/h2c
