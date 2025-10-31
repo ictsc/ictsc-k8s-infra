@@ -77,14 +77,11 @@ metadata:
 spec:
   parameters:
     secrets: |
-      - name: argocd-client-id
       - name: argocd-client-secret
     vaultID: "113702555287"
   provider: sakuracloud
   secretObjects:
   - data:
-    - key: clientID
-      objectName: argocd-client-id
     - key: clientSecret
       objectName: argocd-client-secret
     labels:

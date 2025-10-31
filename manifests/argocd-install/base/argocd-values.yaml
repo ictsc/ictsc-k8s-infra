@@ -14,8 +14,6 @@ configs:
       name: OIDC
       issuer: https://dex.ictsc.net
       enablePKCEAuthentication: true
-      clientID: $oidc-secret:clientID
+      clientID: $oidc.clientID
       clientSecret: $oidc-secret:clientSecret
-  rbac:
-    policy.csv: |
-      g, ictsc:ictsc2025, role:admin
+      cliClientID: $oidc.cliClientID
