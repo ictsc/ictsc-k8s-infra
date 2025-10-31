@@ -60,14 +60,25 @@ spec:
     namespace: gateway
   rules:
   - backendRefs:
-    - group: ""
-      kind: Service
-      name: argo-cd-argocd-server
+    - name: argo-cd-argocd-server
+      port: 81
+    matches:
+    - headers:
+      - name: Content-Type
+        value: application/grpc
+  - backendRefs:
+    - name: argo-cd-argocd-server
       port: 80
     matches:
-    - path:
+    - method: GET
+      path:
         type: PathPrefix
-        value: /
+        value: /api/v1/stream/
+    timeouts:
+      request: 1h
+  - backendRefs:
+    - name: argo-cd-argocd-server
+      port: 80
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
