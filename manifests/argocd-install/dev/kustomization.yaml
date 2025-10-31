@@ -23,6 +23,5 @@ helmCharts:
     releaseName: argo-cd
     namespace: argo-system
     valuesFile: ../base/argocd-values.yaml
-    valuesInline:
-      global:
-        domain: argocd.k8s-dev.ictsc.net
+    additionalValuesFiles:
+      - argocd-values.yaml

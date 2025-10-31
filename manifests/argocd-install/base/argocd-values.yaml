@@ -17,10 +17,3 @@ configs:
       clientID: $oidc.clientID
       clientSecret: $oidc-secret:clientSecret
       cliClientID: $oidc.cliClientID
-  rbac:
-    policy.csv: |
-      g, ictsc:ictsc2025, role:admin
-  secret:
-    extra:
-      oidc.clientID: hwjqkbcrybfn3dp3qczjweb4y
-      oidc.cliClientID: gsfwlmrs4jule7zalu6c76brj
