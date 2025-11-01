@@ -40,18 +40,24 @@ ansible-validate:
 	cd ansible && uv run ansible-lint setup.yaml reset_k0s.yaml
 
 # Kubernetes manifest build pattern rule
-MANIFESTS_DIR = $(wildcard manifests/*)
-MANIFESTS = $(addsuffix /dev.generated.yaml,$(MANIFESTS_DIR))
-CHARTS_DEV = $(addsuffix /dev/charts,$(MANIFESTS_DIR))
-CHARTS_BASE = $(addsuffix /base/charts,$(MANIFESTS_DIR))
+MANIFESTS_DIR := $(wildcard manifests/*)
+MANIFESTS := $(addsuffix /dev.generated.yaml,$(MANIFESTS_DIR))
+CHARTS := $(addsuffix /dev/charts,$(MANIFESTS_DIR)) $(addsuffix /base/charts,$(MANIFESTS_DIR))
+
+CRD_MANIFESTS := $(addsuffix crds.generated.yaml,$(dir $(wildcard manifests/*/crds)))
 
 .PHONY: manifests clean-manifests
 
-manifests: $(MANIFESTS)
+manifests: $(CRD_MANIFESTS) $(MANIFESTS)
 
 clean-manifests:
 	rm -f $(MANIFESTS)
-	rm -rf $(CHARTS_DEV) $(CHARTS_BASE)
+	rm -rf $(CHARTS)
 
-manifests/%/dev.generated.yaml: manifests/%/dev/* $(wildcard manifests/%/base/*)
-	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $(@D)/dev > $@
+.SECONDEXPANSION:
+manifests/%/crds.generated.yaml: $$(shell find manifests/$$*/crds -type f 2>/dev/null)
+	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone manifests/$*/crds > $@
+
+.SECONDEXPANSION:
+manifests/%/dev.generated.yaml: $$(shell find manifests/$$*/dev manifests/$$*/base manifests/$$*/components -type f 2>/dev/null)
+	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone manifests/$*/dev > $@
