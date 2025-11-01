@@ -1,9 +1,4 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/cert-manager/cert-manager/refs/tags/v1.19.1/deploy/charts/cert-manager/values.schema.json
-
-crds:
-  enabled: true
-  keep: true
-
 config:
   apiVersion: controller.config.cert-manager.io/v1alpha1
   kind: ControllerConfiguration
