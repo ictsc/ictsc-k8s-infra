@@ -24881,6 +24881,7 @@ data:
   applicationsetcontroller.log.level: info
   commitserver.log.format: text
   commitserver.log.level: info
+  controller.diff.server.side: "true"
   controller.log.format: text
   controller.log.level: info
   dexserver.log.format: text
@@ -25155,7 +25156,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
+        checksum/cmd-params: fd839510b623da252ca6f230de5452fe41e47a3beffa4f6af6d02ac71041ccc4
       labels:
         app.kubernetes.io/component: applicationset-controller
         app.kubernetes.io/instance: argo-cd
@@ -25440,7 +25441,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
+        checksum/cmd-params: fd839510b623da252ca6f230de5452fe41e47a3beffa4f6af6d02ac71041ccc4
       labels:
         app.kubernetes.io/component: notifications-controller
         app.kubernetes.io/instance: argo-cd
@@ -25658,7 +25659,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
-        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
+        checksum/cmd-params: fd839510b623da252ca6f230de5452fe41e47a3beffa4f6af6d02ac71041ccc4
       labels:
         app.kubernetes.io/component: repo-server
         app.kubernetes.io/instance: argo-cd
@@ -26070,7 +26071,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
-        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
+        checksum/cmd-params: fd839510b623da252ca6f230de5452fe41e47a3beffa4f6af6d02ac71041ccc4
       labels:
         app.kubernetes.io/component: server
         app.kubernetes.io/instance: argo-cd
@@ -26532,7 +26533,7 @@ spec:
     metadata:
       annotations:
         checksum/cm: 39f9716195e7518635e0792f3ca9df4d360ea15f05cf3718aa7e1db9ec1e09c2
-        checksum/cmd-params: e5b2967ce7403d7395bd2c6d72b777bb06d05de88e37754a507ac25997058251
+        checksum/cmd-params: fd839510b623da252ca6f230de5452fe41e47a3beffa4f6af6d02ac71041ccc4
       labels:
         app.kubernetes.io/component: application-controller
         app.kubernetes.io/instance: argo-cd
