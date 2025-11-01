@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: '{crds,dev}.generated.yaml'
     path: manifests/argocd-extra
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
@@ -31,7 +31,7 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: '{crds,dev}.generated.yaml'
     path: manifests/cert-manager
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
@@ -54,7 +54,7 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: '{crds,dev}.generated.yaml'
     path: manifests/csi-secrets-store
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
@@ -76,7 +76,7 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: '{crds,dev}.generated.yaml'
     path: manifests/envoy-gateway
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
@@ -99,7 +99,7 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: '{crds,dev}.generated.yaml'
     path: manifests/gateway
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
