@@ -8,6 +8,7 @@ dex:
 configs:
   params:
     server.insecure: true
+    controller.diff.server.side: true
   cm:
     admin.enabled: false
     oidc.config: |
