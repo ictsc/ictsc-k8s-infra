@@ -96,17 +96,24 @@
     owner: root
     group: root
 
-- name: Create k0s manifests directory for argocd
+- name: Create k0s manifests directory for ArgoCD
   ansible.builtin.file:
     path: /var/lib/k0s/manifests/argocd
     state: directory
     mode: "0755"
     owner: root
     group: root
-- name: Deploy argocd manifest
+- name: Deploy ArgoCD CRDs
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../manifests/argocd-install/crds.generated.yaml"
+    dest: /var/lib/k0s/manifests/argocd/10-argocd-crds.yaml
+    mode: "0644"
+    owner: root
+    group: root
+- name: Deploy ArgoCD manifest
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../manifests/argocd-install/dev.generated.yaml"
-    dest: /var/lib/k0s/manifests/argocd/argocd-install.yaml
+    dest: /var/lib/k0s/manifests/argocd/20-argocd-install.yaml
     mode: "0644"
     owner: root
     group: root
