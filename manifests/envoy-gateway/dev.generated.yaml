@@ -38223,6 +38223,14 @@ metadata:
   name: envoy-gateway
   namespace: envoy-gateway-system
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: hmac-secret-manager
+  name: hmac-secret-manager
+  namespace: envoy-gateway-system
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -38324,6 +38332,25 @@ rules:
   verbs:
   - create
   - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/name: hmac-secret-manager
+  name: hmac-secret-manager
+  namespace: envoy-gateway-system
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - envoy-oidc-hmac
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -38494,6 +38521,22 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: envoy-gateway
+  namespace: envoy-gateway-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: hmac-secret-manager
+  name: hmac-secret-manager
+  namespace: envoy-gateway-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hmac-secret-manager
+subjects:
+- kind: ServiceAccount
+  name: hmac-secret-manager
   namespace: envoy-gateway-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
