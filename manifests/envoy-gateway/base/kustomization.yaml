@@ -5,6 +5,7 @@ resources:
   - certs.yaml
   - network-policy.yaml
   - gateway-class.yaml
+  - hmac-secret-manager.yaml
 
 helmCharts:
   - name: gateway-crds-helm
