@@ -5,6 +5,8 @@ enableSecretRotaion: true
 rotationPollInterval: 15m
 
 linux:
+  crds:
+    enabled: false
   kubeletRootDir: /var/lib/k0s/kubelet
   podAnnotations:
     prometheus.io/scrape: "true"

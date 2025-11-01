@@ -1,0 +1,4 @@
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.9/manifests/crds/application-crd.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.9/manifests/crds/applicationset-crd.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.9/manifests/crds/appproject-crd.yaml

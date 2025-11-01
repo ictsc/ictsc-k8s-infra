@@ -2,6 +2,9 @@ global:
   networkPolicy:
     create: true
 
+crds:
+  install: false
+
 dex:
   enabled: false
 

@@ -1,0 +1,6 @@
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "-10"
+
+resources:
+  - https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.5.4/deploy/secrets-store.csi.x-k8s.io_secretproviderclasses.yaml
+  - https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.5.4/deploy/secrets-store.csi.x-k8s.io_secretproviderclasspodstatuses.yaml

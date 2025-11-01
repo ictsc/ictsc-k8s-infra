@@ -8,4 +8,4 @@ patches:
       - op: add
         path: /spec/source/directory
         value:
-          include: dev.generated.yaml
+          include: "{crds,dev}.generated.yaml"
