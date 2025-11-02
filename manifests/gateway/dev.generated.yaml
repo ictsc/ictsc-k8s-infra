@@ -143,7 +143,10 @@ spec:
     protocol: HTTP
   - allowedRoutes:
       namespaces:
-        from: All
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argo-system
     hostname: argocd.k8s-dev.ictsc.net
     name: argocd-https
     port: 443
@@ -151,4 +154,18 @@ spec:
     tls:
       certificateRefs:
       - name: argocd-tls
+      mode: Terminate
+  - allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+    hostname: hubble.k8s-dev.ictsc.net
+    name: hubble-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: hubble-tls
       mode: Terminate

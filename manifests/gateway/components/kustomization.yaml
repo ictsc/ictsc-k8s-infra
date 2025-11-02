@@ -36,3 +36,4 @@ replacements:
           index: 1
         fieldPaths:
           - spec.listeners.[name=argocd-https].hostname
+          - spec.listeners.[name=hubble-https].hostname
