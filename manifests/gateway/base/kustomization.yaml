@@ -3,6 +3,8 @@ namespace: gateway
 resources:
   - namespace.yaml
   - issuer.yaml
+  - secret.yaml
   - web-gateway.yaml
   - web-envoy-proxy.yaml
   - web-network-policy.yaml
+  - login-service.yaml

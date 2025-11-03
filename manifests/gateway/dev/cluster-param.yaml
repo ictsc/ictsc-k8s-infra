@@ -7,4 +7,6 @@ metadata:
 data:
   web-gateway-ips: 2001:e42:407:103c:1::80,64:ff9b::163.43.176.221
   web-gateway-replicas: 1
-  k8s-base-host: k8s-dev.ictsc.net
+  k8s-domain: k8s-dev
+  vault-id: "113702555287"
+  auth-proxy-client-id: or4pllyrzelrqeb3og2psunvm
