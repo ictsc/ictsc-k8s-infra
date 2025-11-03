@@ -26,7 +26,7 @@ replacements:
   - source:
       kind: ConfigMap
       name: cluster-param
-      fieldPath: data.k8s-base-host
+      fieldPath: data.k8s-domain
     targets:
       - select:
           kind: Gateway
@@ -36,3 +36,60 @@ replacements:
           index: 1
         fieldPaths:
           - spec.listeners.[name=argocd-https].hostname
+      - select:
+          kind: Gateway
+          name: web-with-auth
+        options:
+          delimiter: "."
+          index: 1
+        fieldPaths:
+          - spec.listeners.[name=login-https].hostname
+          - spec.listeners.[name=hubble-https].hostname
+      - select:
+          kind: SecurityPolicy
+          name: web-oidc-auth
+        options:
+          delimiter: "."
+          index: 1
+        fieldPaths:
+          - spec.oidc.redirectURL
+      - select:
+          kind: SecurityPolicy
+          name: web-oidc-auth
+        options:
+          delimiter: "."
+          index: 0
+        fieldPaths:
+          - spec.oidc.cookieDomain
+      - select:
+          kind: HTTPRoute
+          name: login
+        options:
+          delimiter: "."
+          index: 1
+        fieldPaths:
+          - spec.hostnames.0
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.vault-id
+    targets:
+      - select:
+          kind: SecretProviderClass
+        fieldPaths:
+          - spec.parameters.vaultID
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.auth-proxy-client-id
+    targets:
+      - select:
+          kind: SecurityPolicy
+          name: web-oidc-auth
+        fieldPaths:
+          - spec.oidc.clientID
+      - select:
+          kind: SecretProviderClass
+          name: sakuracloud-secret
+        fieldPaths:
+          - spec.secretObjects.[secretName=auth-proxy-client-secret].annotations.client-id

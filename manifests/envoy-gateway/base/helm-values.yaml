@@ -11,3 +11,17 @@ topologyInjector:
   enabled: true
   annotations:
     cert-manager.io/inject-ca-from: envoy-gateway-system/envoy-gateway-ca
+
+global:
+  images:
+    envoyGateway:
+      pullPolicy: Always
+
+deployment:
+  envoyGateway:
+    # Envoy Gateway がデフォルトで生成する xDS Cluster の DNS ポリシーが V4_PREFERRED になっていて IPv6 Only からの接続性に問題がある
+    #TODO: Envoy Gateway に Issue を立ててトラックする
+    image:
+      repository: ghcr.io/tosuke-lab/envoy-gateway
+      tag: v1.5.4-ipv6 # See: tosuke-lab/gateway#1
+    imagePullPolicy: Always

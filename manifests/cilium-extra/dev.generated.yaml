@@ -1,0 +1,39 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-ui
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s-app: hubble-ui
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/component: proxy
+        gateway.envoyproxy.io/owning-gatewayclass: web-gateway
+        k8s:io.kubernetes.pod.namespace: envoy-gateway-system
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
+  name: hubble-ui
+  namespace: kube-system
+spec:
+  hostnames:
+  - hubble.k8s-dev.ictsc.net
+  parentRefs:
+  - name: web-with-auth
+    namespace: gateway
+  rules:
+  - backendRefs:
+    - name: hubble-ui
+      port: 80

@@ -3,6 +3,86 @@ kind: Namespace
 metadata:
   name: gateway
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: login
+  namespace: gateway
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: login
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login
+  namespace: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: login
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: login
+    spec:
+      containers:
+      - image: nginx:1.29.3
+        name: nginx
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          limits:
+            cpu: 100m
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: 8Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-pin
+  namespace: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: secret-pin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: secret-pin
+    spec:
+      containers:
+      - image: registry.k8s.io/pause:3.10.1
+        imagePullPolicy: IfNotPresent
+        name: pause
+        resources:
+          limits:
+            cpu: 2m
+            memory: 10Mi
+          requests:
+            cpu: 1m
+            memory: 1Mi
+        volumeMounts:
+        - mountPath: /mnt/secrets-store
+          name: secrets-store-inline
+          readOnly: true
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: sakuracloud-secret
+        name: secrets-store-inline
+---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -57,8 +137,7 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: proxy
-      gateway.envoyproxy.io/owning-gateway-name: web
-      gateway.envoyproxy.io/owning-gateway-namespace: gateway
+      gateway.envoyproxy.io/owning-gatewayclass: web-gateway
       k8s:io.kubernetes.pod.namespace: envoy-gateway-system
   ingress:
   - fromEntities:
@@ -83,13 +162,31 @@ spec:
   - fromEndpoints:
     - matchLabels:
         app.kubernetes.io/component: proxy
-        gateway.envoyproxy.io/owning-gateway-name: web
-        gateway.envoyproxy.io/owning-gateway-namespace: gateway
+        gateway.envoyproxy.io/owning-gatewayclass: web-gateway
         k8s:io.kubernetes.pod.namespace: envoy-gateway-system
     toPorts:
     - ports:
       - port: http
         protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: login
+  namespace: gateway
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: login
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/component: proxy
+        gateway.envoyproxy.io/owning-gatewayclass: web-gateway
+        k8s:io.kubernetes.pod.namespace: envoy-gateway-system
+    toPorts:
+    - ports:
+      - port: http
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -107,6 +204,7 @@ spec:
       value: true
     type: JSONPatch
   ipFamily: IPv6
+  mergeGateways: true
   provider:
     kubernetes:
       envoyDeployment:
@@ -120,6 +218,31 @@ spec:
           k8s.ictsc.net/lb-ipv4: "true"
     type: Kubernetes
 ---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: web-oidc-auth
+  namespace: gateway
+spec:
+  oidc:
+    clientID: or4pllyrzelrqeb3og2psunvm
+    clientSecret:
+      name: auth-proxy-client-secret
+    cookieDomain: k8s-dev.ictsc.net
+    logoutPath: /oauth2/logout
+    provider:
+      backendSettings:
+        retry:
+          numRetries: 3
+      issuer: https://dex.ictsc.net
+    redirectURL: https://login.k8s-dev.ictsc.net/oauth2/callback
+    scopes:
+    - openid
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: web-with-auth
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -128,12 +251,7 @@ metadata:
   name: web
   namespace: gateway
 spec:
-  gatewayClassName: envoy-gateway
-  infrastructure:
-    parametersRef:
-      group: gateway.envoyproxy.io
-      kind: EnvoyProxy
-      name: web
+  gatewayClassName: web-gateway
   listeners:
   - allowedRoutes:
       namespaces:
@@ -143,7 +261,10 @@ spec:
     protocol: HTTP
   - allowedRoutes:
       namespaces:
-        from: All
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argo-system
     hostname: argocd.k8s-dev.ictsc.net
     name: argocd-https
     port: 443
@@ -152,3 +273,87 @@ spec:
       certificateRefs:
       - name: argocd-tls
       mode: Terminate
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+  name: web-with-auth
+  namespace: gateway
+spec:
+  gatewayClassName: web-gateway
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    hostname: login.k8s-dev.ictsc.net
+    name: login-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: web-auth-tls
+      mode: Terminate
+  - allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+    hostname: hubble.k8s-dev.ictsc.net
+    name: hubble-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: web-auth-tls
+      mode: Terminate
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: web-gateway
+  namespace: gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: web
+    namespace: gateway
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: login
+  namespace: gateway
+spec:
+  hostnames:
+  - login.k8s-dev.ictsc.net
+  parentRefs:
+  - name: web-with-auth
+  rules:
+  - backendRefs:
+    - name: login
+      port: 80
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: sakuracloud-secret
+  namespace: gateway
+spec:
+  parameters:
+    secrets: |
+      - name: auth-proxy-client-secret
+    vaultID: "113702555287"
+  provider: sakuracloud
+  secretObjects:
+  - annotations:
+      client-id: or4pllyrzelrqeb3og2psunvm
+    data:
+    - key: client-secret
+      objectName: auth-proxy-client-secret
+    secretName: auth-proxy-client-secret
+    type: Opaque

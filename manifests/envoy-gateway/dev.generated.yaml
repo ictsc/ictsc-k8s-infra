@@ -369,7 +369,7 @@ data:
                     - imagePullPolicy: IfNotPresent
                       name: envoy-ratelimit
         shutdownManager:
-          image: docker.io/envoyproxy/gateway:v1.5.4
+          image: ghcr.io/tosuke-lab/envoy-gateway:v1.5.4-ipv6
       type: Kubernetes
 kind: ConfigMap
 metadata:
@@ -457,8 +457,8 @@ spec:
               fieldPath: metadata.namespace
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: cluster.local
-        image: docker.io/envoyproxy/gateway:v1.5.4
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/tosuke-lab/envoy-gateway:v1.5.4-ipv6
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /healthz
@@ -698,14 +698,6 @@ spec:
     - ports:
       - port: webhook
         protocol: TCP
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: envoy-gateway
-  namespace: envoy-gateway-system
-spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration

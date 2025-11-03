@@ -1,0 +1,11 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      kind: HTTPRoute
+      name: hubble-ui
+    patch: |-
+      - op: replace
+        path: /spec/hostnames/0
+        value: hubble.k8s-dev.ictsc.net

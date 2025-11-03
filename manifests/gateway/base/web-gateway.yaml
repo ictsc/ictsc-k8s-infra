@@ -5,12 +5,7 @@ metadata:
   annotations:
     cert-manager.io/issuer: letsencrypt
 spec:
-  gatewayClassName: envoy-gateway
-  infrastructure:
-    parametersRef:
-      group: gateway.envoyproxy.io
-      kind: EnvoyProxy
-      name: web
+  gatewayClassName: web-gateway
   listeners:
     - name: http
       protocol: HTTP
@@ -19,13 +14,75 @@ spec:
         namespaces:
           from: All
     - name: argocd-https
-      hostname: argocd.$k8s-base-host
+      hostname: argocd.$k8s-domain.ictsc.net
       protocol: HTTPS
       port: 443
       allowedRoutes:
         namespaces:
-          from: All
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: argo-system
       tls:
         mode: Terminate
         certificateRefs:
           - name: argocd-tls
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: web-with-auth
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+spec:
+  gatewayClassName: web-gateway
+  listeners:
+    - name: login-https
+      hostname: login.$k8s-domain.ictsc.net
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: Same
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: web-auth-tls
+    - name: hubble-https
+      hostname: hubble.$k8s-domain.ictsc.net
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: web-auth-tls
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: web-oidc-auth
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: web-with-auth
+  oidc:
+    provider:
+      issuer: https://dex.ictsc.net
+      backendSettings:
+        retry:
+          numRetries: 3
+    clientID: $auth-proxy-client-id
+    clientSecret:
+      name: auth-proxy-client-secret
+    redirectURL: https://login.$k8s-domain.ictsc.net/oauth2/callback
+    logoutPath: /oauth2/logout
+    cookieDomain: $k8s-domain.ictsc.net
+    scopes:
+      - openid
