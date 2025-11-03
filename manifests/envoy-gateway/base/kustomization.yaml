@@ -4,5 +4,4 @@ resources:
   - namespace.yaml
   - certs.yaml
   - network-policy.yaml
-  - gateway-class.yaml
   - hmac-secret-manager.yaml

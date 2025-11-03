@@ -57,8 +57,7 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: proxy
-      gateway.envoyproxy.io/owning-gateway-name: web
-      gateway.envoyproxy.io/owning-gateway-namespace: gateway
+      gateway.envoyproxy.io/owning-gatewayclass: web-gateway
       k8s:io.kubernetes.pod.namespace: envoy-gateway-system
   ingress:
   - fromEntities:
@@ -83,8 +82,7 @@ spec:
   - fromEndpoints:
     - matchLabels:
         app.kubernetes.io/component: proxy
-        gateway.envoyproxy.io/owning-gateway-name: web
-        gateway.envoyproxy.io/owning-gateway-namespace: gateway
+        gateway.envoyproxy.io/owning-gatewayclass: web-gateway
         k8s:io.kubernetes.pod.namespace: envoy-gateway-system
     toPorts:
     - ports:
@@ -107,6 +105,7 @@ spec:
       value: true
     type: JSONPatch
   ipFamily: IPv6
+  mergeGateways: true
   provider:
     kubernetes:
       envoyDeployment:
@@ -128,12 +127,7 @@ metadata:
   name: web
   namespace: gateway
 spec:
-  gatewayClassName: envoy-gateway
-  infrastructure:
-    parametersRef:
-      group: gateway.envoyproxy.io
-      kind: EnvoyProxy
-      name: web
+  gatewayClassName: web-gateway
   listeners:
   - allowedRoutes:
       namespaces:
@@ -155,6 +149,17 @@ spec:
       certificateRefs:
       - name: argocd-tls
       mode: Terminate
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+  name: web-with-auth
+  namespace: gateway
+spec:
+  gatewayClassName: web-gateway
+  listeners:
   - allowedRoutes:
       namespaces:
         from: Selector
@@ -169,3 +174,16 @@ spec:
       certificateRefs:
       - name: hubble-tls
       mode: Terminate
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: web-gateway
+  namespace: gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: web
+    namespace: gateway

@@ -36,4 +36,11 @@ replacements:
           index: 1
         fieldPaths:
           - spec.listeners.[name=argocd-https].hostname
+      - select:
+          kind: Gateway
+          name: web-with-auth
+        options:
+          delimiter: "."
+          index: 1
+        fieldPaths:
           - spec.listeners.[name=hubble-https].hostname

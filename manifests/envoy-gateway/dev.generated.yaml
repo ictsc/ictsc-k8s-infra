@@ -699,14 +699,6 @@ spec:
       - port: webhook
         protocol: TCP
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: envoy-gateway
-  namespace: envoy-gateway-system
-spec:
-  controllerName: gateway.envoyproxy.io/gatewayclass-controller
----
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
