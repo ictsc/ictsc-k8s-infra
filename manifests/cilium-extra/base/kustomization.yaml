@@ -1,0 +1,10 @@
+namespace: kube-system
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/part-of: cilium
+
+#TODO: Hubble Relay/UI Deployments can be split from Cilium install manifests
+resources:
+  - hubble-ui-route.yaml

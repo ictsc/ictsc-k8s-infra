@@ -45,6 +45,28 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: cilium-extra
+  namespace: argo-system
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,dev}.generated.yaml'
+    path: manifests/cilium-extra
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: csi-secrets-store
   namespace: argo-system
 spec:
