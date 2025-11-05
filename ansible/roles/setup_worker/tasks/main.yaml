@@ -1,4 +1,25 @@
 ---
+- name: Ensure lvm2 installed
+  ansible.builtin.package:
+    name: lvm2
+    state: present
+
+- name: Ensure lvm2-monitor service is enabled and started
+  ansible.builtin.systemd:
+    name: lvm2-monitor
+    enabled: true
+    state: started
+
+- name: Ensure /dev/vdb is a LVM PV
+  community.general.lvm_pv:
+    device: /dev/vdb
+    resize: true
+
+- name: Ensure LVM VG ssd_vg exists
+  community.general.lvg:
+    vg: ssd_vg
+    pvs: /dev/vdb
+
 - name: Ensure containerd.d directory exists
   ansible.builtin.file:
     path: /etc/k0s/containerd.d

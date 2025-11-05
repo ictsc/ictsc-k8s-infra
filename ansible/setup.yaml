@@ -65,14 +65,14 @@
   roles:
     - join_controller
 
-- name: Join workers
-  hosts: worker
-  become: true
-  roles:
-    - join_worker
-
 - name: Setup worker nodes
   hosts: worker
   become: true
   roles:
     - setup_worker
+
+- name: Join workers
+  hosts: worker
+  become: true
+  roles:
+    - join_worker
