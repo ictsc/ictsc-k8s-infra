@@ -126,7 +126,10 @@ resource "sakura_server" "worker" {
   core   = 2
   memory = 4
 
-  disks = [sakura_disk.worker_root[count.index].id]
+  disks = [
+    sakura_disk.worker_root[count.index].id,
+    sakura_disk.worker_data[count.index].id,
+  ]
   network_interface = [{
     upstream = sakura_internet.internet.switch_id,
   }]
@@ -163,4 +166,8 @@ resource "sakura_disk" "worker_data" {
   description = "k8s worker data disk"
   plan        = "ssd"
   size        = 40
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
