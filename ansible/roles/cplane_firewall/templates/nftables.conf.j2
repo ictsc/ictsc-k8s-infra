@@ -21,7 +21,7 @@ table ip6 filter {
         tcp dport 22 accept
         # kube-apiserver
         tcp dport 6443 accept
-		tcp dport 6444 accept
+        tcp dport 6444 accept
 
         # Control Plane Node Services
         # etcd client
@@ -31,7 +31,7 @@ table ip6 filter {
         # k0s api
         ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} tcp dport 9443 accept
         # VRRP
-        ip6 saddr {{ cplane_firewall_cplane_ipv6_subnet }} meta l4proto vrrp accept
+        meta l4proto vrrp accept
 
         # Worker Node Services
         # konnectivity
