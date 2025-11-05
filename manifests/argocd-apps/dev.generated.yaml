@@ -131,3 +131,26 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: topolvm
+  namespace: argo-system
+spec:
+  destination:
+    namespace: topolvm-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,dev}.generated.yaml'
+    path: manifests/topolvm
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

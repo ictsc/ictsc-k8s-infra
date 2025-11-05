@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: topolvm
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: topolvm-system
+  source:
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+    path: manifests/topolvm
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
