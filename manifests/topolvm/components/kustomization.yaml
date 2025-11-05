@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 patches:
-  # Helm Chart で CRD の生成を無効化できないので config.kubernetes.io/local-config を使って結果から消去する
+  # Since CRD generation cannot be disabled in the Helm Chart, use config.kubernetes.io/local-config to remove it from the result
   - target:
       kind: CustomResourceDefinition
       name: logicalvolumes.topolvm.io
