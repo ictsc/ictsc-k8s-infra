@@ -1,0 +1,15 @@
+storageClasses:
+  - name: topolvm-provisioner
+    storageClass:
+      fsType: ext4
+      allowVolumeExpansion: true
+
+lvmd:
+  deviceClasses:
+    - name: ssd
+      volume-group: ssd_vg
+      default: true
+      spare-gb: 10
+
+node:
+  kubeletWorkDirectory: /var/lib/k0s/kubelet
