@@ -2,4 +2,4 @@ commonAnnotations:
   argocd.argoproj.io/sync-wave: "-10"
 
 resources:
-  - https://raw.githubusercontent.com/topolvm/topolvm/v0.38.0/config/crd/bases/topolvm.io_logicalvolumes.yaml
+  - https://raw.githubusercontent.com/topolvm/topolvm/v0.38.1/config/crd/bases/topolvm.io_logicalvolumes.yaml
