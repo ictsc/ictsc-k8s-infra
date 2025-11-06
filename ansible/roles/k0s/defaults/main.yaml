@@ -10,3 +10,8 @@ k0s_nat64_prefix: "64:ff9b::"
 k0s_k8s_api_host:
 k0s_k8s_api_ipv4:
 k0s_k8s_api_ipv6:
+
+# API Server environment variables
+# KUBE_APISERVER_GOMEMLIMIT sets the memory limit for kube-apiserver
+# Leave empty to not set the variable
+k0s_kube_apiserver_gomemlimit: ""

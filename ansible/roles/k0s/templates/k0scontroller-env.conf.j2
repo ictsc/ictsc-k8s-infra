@@ -1,0 +1,9 @@
+# Managed by Ansible
+# This file configures environment variables for k0scontroller service
+# Environment variables set here are inherited by k0s components
+# See: https://docs.k0sproject.io/stable/environment-variables
+
+[Service]
+{% if k0s_kube_apiserver_gomemlimit | default('') | length > 0 %}
+Environment="KUBE_APISERVER_GOMEMLIMIT={{ k0s_kube_apiserver_gomemlimit }}"
+{% endif %}

@@ -1,4 +1,22 @@
 ---
+- name: Create k0scontroller systemd drop-in directory
+  ansible.builtin.file:
+    path: "/etc/systemd/system/k0scontroller.service.d"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+- name: Deploy k0scontroller environment configuration
+  ansible.builtin.template:
+    src: k0scontroller-env.conf.j2
+    dest: "/etc/systemd/system/k0scontroller.service.d/environment.conf"
+    mode: "0644"
+    owner: root
+    group: root
+  notify:
+    - Reload systemd
+    - Restart k0s controller
+
 - name: Create k0s config directory
   ansible.builtin.file:
     path: "/etc/k0s"
