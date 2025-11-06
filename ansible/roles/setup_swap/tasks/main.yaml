@@ -1,33 +1,33 @@
 ---
 - name: Check if swap file exists
   ansible.builtin.stat:
-    path: "{{ swap_file_path }}"
-  register: swap_file_stat
+    path: "{{ setup_swap_file_path }}"
+  register: setup_swap_file_stat
 
 - name: Create swap file
   ansible.builtin.command:
-    cmd: fallocate -l {{ swap_file_size_gb }}G {{ swap_file_path }}
-    creates: "{{ swap_file_path }}"
-  when: not swap_file_stat.stat.exists
+    cmd: fallocate -l {{ setup_swap_file_size_gb }}G {{ setup_swap_file_path }}
+    creates: "{{ setup_swap_file_path }}"
+  when: not setup_swap_file_stat.stat.exists
 
 - name: Set swap file permissions
   ansible.builtin.file:
-    path: "{{ swap_file_path }}"
+    path: "{{ setup_swap_file_path }}"
     mode: "0600"
     owner: root
     group: root
 
 - name: Format swap file
   ansible.builtin.command:
-    cmd: mkswap {{ swap_file_path }}
-  when: not swap_file_stat.stat.exists
-  register: mkswap_result
-  changed_when: mkswap_result.rc == 0
+    cmd: mkswap {{ setup_swap_file_path }}
+  when: not setup_swap_file_stat.stat.exists
+  register: setup_swap_mkswap_result
+  changed_when: setup_swap_mkswap_result.rc == 0
 
 - name: Set vm.swappiness
-  ansible.builtin.sysctl:
+  ansible.posix.sysctl:
     name: vm.swappiness
-    value: "{{ swap_swappiness }}"
+    value: "{{ setup_swap_swappiness }}"
     state: present
     sysctl_set: true
     sysctl_file: /etc/sysctl.d/99-swappiness.conf

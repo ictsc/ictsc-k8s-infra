@@ -1,12 +1,12 @@
 # Managed by Ansible
-# systemd swap unit for {{ swap_file_path }}
+# systemd swap unit for {{ setup_swap_file_path }}
 
 [Unit]
 Description=Swap file
 Documentation=man:systemd.swap(5)
 
 [Swap]
-What={{ swap_file_path }}
+What={{ setup_swap_file_path }}
 Priority=100
 
 [Install]
