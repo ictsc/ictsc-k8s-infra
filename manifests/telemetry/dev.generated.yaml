@@ -96,7 +96,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - events.k8s.io
   resources:
   - events
   verbs:
@@ -174,7 +174,6 @@ spec:
       automountServiceAccountToken: true
       containers:
       - args:
-        - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.86.1
         - --kubelet-service=kube-system/kubelet
         - --kubelet-endpoints=true
         - --kubelet-endpointslice=false
