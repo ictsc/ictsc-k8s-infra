@@ -1,3 +1,4 @@
 #!/bin/bash
 
-terraform -chdir=$(dirname "$0")/../terraform/env/dev output -raw ansible_inventory
+ENV=${ENV:-dev}
+terraform -chdir=$(dirname "$0")/../terraform/env/${ENV} output -raw ansible_inventory
