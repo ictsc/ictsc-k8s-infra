@@ -1,0 +1,18 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: topolvm-controller
+  labels:
+    app.kubernetes.io/name: topolvm
+    app.kubernetes.io/component: controller
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: topolvm
+      app.kubernetes.io/component: controller
+  ingress:
+    - fromEntities: [host, remote-node]
+      toPorts:
+        - ports:
+            - port: webhook
+              protocol: TCP

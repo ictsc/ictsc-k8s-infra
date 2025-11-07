@@ -1181,6 +1181,28 @@ metadata:
 spec:
   selfSigned: {}
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: topolvm
+  name: topolvm-controller
+  namespace: topolvm-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: topolvm
+  ingress:
+  - fromEntities:
+    - host
+    - remote-node
+    toPorts:
+    - ports:
+      - port: webhook
+        protocol: TCP
+---
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:
