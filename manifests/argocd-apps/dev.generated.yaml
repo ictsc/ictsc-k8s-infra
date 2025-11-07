@@ -135,6 +135,28 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: telemetry
+  namespace: argo-system
+spec:
+  destination:
+    namespace: telemetry
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,dev}.generated.yaml'
+    path: manifests/telemetry
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: topolvm
   namespace: argo-system
 spec:

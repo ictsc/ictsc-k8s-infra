@@ -8,3 +8,4 @@ resources:
   - web-envoy-proxy.yaml
   - web-network-policy.yaml
   - login-service.yaml
+  - telemetry-mtls-policy.yaml

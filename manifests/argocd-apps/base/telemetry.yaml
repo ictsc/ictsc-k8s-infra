@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: telemetry
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: telemetry
+  source:
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+    path: manifests/telemetry
+  syncPolicy:
+    syncOptions: []
+    automated: {}

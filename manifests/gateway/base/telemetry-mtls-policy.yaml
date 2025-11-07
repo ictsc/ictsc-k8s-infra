@@ -1,0 +1,54 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: telemetry-mtls
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: web
+      sectionName: telemetry-https
+  tls:
+    clientValidation:
+      caCertificateRefs:
+        - kind: Secret
+          name: telemetry-client-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: telemetry-client-ca
+spec:
+  isCA: true
+  commonName: telemetry
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  duration: 87600h
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-issuer
+  secretName: telemetry-client-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: telemetry-client
+spec:
+  ca:
+    secretName: telemetry-client-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: telemetry-client-grafana-ictsc-net
+spec:
+  commonName: grafana.ictsc.net
+  dnsNames:
+    - grafana.ictsc.net
+  duration: 43800h
+  issuerRef:
+    kind: Issuer
+    name: telemetry-client
+  secretName: telemetry-client-grafana-ictsc-net

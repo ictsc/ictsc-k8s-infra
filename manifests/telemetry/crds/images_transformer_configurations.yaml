@@ -1,0 +1,4 @@
+images:
+  - group: monitoring.coreos.com
+    kind: Prometheus
+    path: spec/image

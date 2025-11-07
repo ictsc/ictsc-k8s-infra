@@ -1,0 +1,6 @@
+namespace: telemetry
+
+resources:
+  - namespace.yaml
+  - httproute.yaml
+  - ./prometheus
