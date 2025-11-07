@@ -4,6 +4,15 @@
     daemon_reload: true
 
 - name: Restart k0s controller
-  ansible.builtin.systemd:
-    name: k0scontroller
-    state: restarted
+  block:
+    - name: Check if k0s controller is running
+      ansible.builtin.command: systemctl is-active k0scontroller
+      register: k0scontroller_is_active
+      changed_when: false
+      failed_when: false
+
+    - name: Restart k0s controller service
+      ansible.builtin.systemd:
+        name: k0scontroller
+        state: restarted
+      when: k0scontroller_is_active.rc == 0
