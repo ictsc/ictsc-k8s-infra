@@ -84,6 +84,39 @@ spec:
         name: secrets-store-inline
 ---
 apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: telemetry-client-ca
+  namespace: gateway
+spec:
+  commonName: telemetry
+  duration: 87600h
+  isCA: true
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned-issuer
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  secretName: telemetry-client-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: telemetry-client-grafana-ictsc-net
+  namespace: gateway
+spec:
+  commonName: grafana.ictsc.net
+  dnsNames:
+  - grafana.ictsc.net
+  duration: 43800h
+  issuerRef:
+    kind: Issuer
+    name: telemetry-client
+  secretName: telemetry-client-grafana-ictsc-net
+---
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: letsencrypt
@@ -126,6 +159,15 @@ spec:
             metadata:
               labels:
                 app.kubernetes.io/name: cm-acme-http-solver
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: telemetry-client
+  namespace: gateway
+spec:
+  ca:
+    secretName: telemetry-client-ca
 ---
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
@@ -187,6 +229,23 @@ spec:
     toPorts:
     - ports:
       - port: http
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: telemetry-mtls
+  namespace: gateway
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: web
+    sectionName: telemetry-https
+  tls:
+    clientValidation:
+      caCertificateRefs:
+      - kind: Secret
+        name: telemetry-client-ca
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
@@ -272,6 +331,20 @@ spec:
     tls:
       certificateRefs:
       - name: argocd-tls
+      mode: Terminate
+  - allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: telemetry
+    hostname: telemetry.k8s-dev.ictsc.net
+    name: telemetry-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: web-tls
       mode: Terminate
 ---
 apiVersion: gateway.networking.k8s.io/v1

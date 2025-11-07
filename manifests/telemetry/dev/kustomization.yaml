@@ -4,6 +4,15 @@ resources:
 configurations:
   - ../crds/images_transformer_configurations.yaml
 
+patches:
+  - target:
+      kind: HTTPRoute
+      name: telemetry
+    patch: |-
+      - op: replace
+        path: /spec/hostnames/0
+        value: "telemetry.k8s-dev.ictsc.net"
+
 images:
   - name: prometheus-operator
     newName: quay.io/prometheus-operator/prometheus-operator
