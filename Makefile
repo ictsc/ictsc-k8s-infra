@@ -34,7 +34,7 @@ $(TF_DIR)/.terraform:
 .PHONY: ansible-apply ansible-validate
 
 ansible-apply: manifests
-	cd ansible && uv run ansible-playbook setup.yaml
+	cd ansible && ENV=$(ENV) uv run ansible-playbook setup.yaml
 
 ansible-validate:
 	cd ansible && uv run ansible-lint setup.yaml reset_k0s.yaml
@@ -51,8 +51,9 @@ CRD_MANIFESTS := $(addsuffix crds.generated.yaml,$(dir $(wildcard manifests/*/cr
 manifests: $(CRD_MANIFESTS) $(MANIFESTS)
 
 clean-manifests:
-	rm -f $(MANIFESTS)
+	rm -f $(CRD_MANIFESTS)
 	rm -rf $(CHARTS)
+	rm -f $(MANIFESTS)
 
 .SECONDEXPANSION:
 manifests/%/crds.generated.yaml: $$(shell find manifests/$$*/crds -type f 2>/dev/null)
