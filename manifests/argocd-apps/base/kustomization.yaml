@@ -8,6 +8,7 @@ resources:
   - argocd-extra.yaml
   - cilium-extra.yaml
   - topolvm.yaml
+  - telemetry.yaml
 
 patches:
   - target:
