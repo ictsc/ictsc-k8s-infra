@@ -19,4 +19,4 @@ images:
     newTag: v0.86.1
   - name: prometheus
     newName: quay.io/prometheus/prometheus
-    newTag: v3.7.1
+    newTag: v3.7.3

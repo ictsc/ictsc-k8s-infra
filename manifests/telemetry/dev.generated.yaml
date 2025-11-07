@@ -307,7 +307,7 @@ spec:
           matchLabels:
             app.kubernetes.io/name: prometheus
         topologyKey: kubernetes.io/hostname
-  image: quay.io/prometheus/prometheus:v3.7.1
+  image: quay.io/prometheus/prometheus:v3.7.3
   otlp:
     convertHistogramsToNHCB: true
     promoteResourceAttributes:
