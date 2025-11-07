@@ -16,7 +16,7 @@ patches:
 images:
   - name: prometheus-operator
     newName: quay.io/prometheus-operator/prometheus-operator
-    newTag: v0.86.1
+    newTag: v0.86.2
   - name: prometheus
     newName: quay.io/prometheus/prometheus
     newTag: v3.7.1
