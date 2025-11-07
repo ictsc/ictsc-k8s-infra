@@ -14,4 +14,4 @@
         state: restarted
       when: 
         - ansible_facts.services['k0scontroller.service'] is defined
-        - ansible_facts.services['k0scontroller.service'].state == 'running'
+        - ansible_facts.services['k0scontroller.service'].state == 'active'
