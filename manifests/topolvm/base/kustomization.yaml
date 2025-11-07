@@ -1,2 +1,5 @@
+namespace: topolvm-system
+
 resources:
   - namespace.yaml
+  - webhook-policy.yaml
