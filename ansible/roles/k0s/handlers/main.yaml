@@ -1,5 +1,17 @@
 ---
-- name: Restart k0s controller
+- name: Reload systemd
   ansible.builtin.systemd:
-    name: k0scontroller
-    state: restarted
+    daemon_reload: true
+
+- name: Restart k0s controller
+  block:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Restart k0s controller service
+      ansible.builtin.systemd:
+        name: k0scontroller
+        state: restarted
+      when:
+        - ansible_facts.services['k0scontroller.service'] is defined
+        - ansible_facts.services['k0scontroller.service'].state == 'active'

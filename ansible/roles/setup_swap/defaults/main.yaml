@@ -1,0 +1,5 @@
+---
+# Swap configuration
+setup_swap_file_path: /swapfile
+setup_swap_file_size_gb: 4
+setup_swap_swappiness: 25
