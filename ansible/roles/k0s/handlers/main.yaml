@@ -5,14 +5,13 @@
 
 - name: Restart k0s controller
   block:
-    - name: Check if k0s controller is running
-      ansible.builtin.command: systemctl is-active k0scontroller
-      register: k0scontroller_is_active
-      changed_when: false
-      failed_when: false
+    - name: Gather service facts
+      ansible.builtin.service_facts:
 
     - name: Restart k0s controller service
       ansible.builtin.systemd:
         name: k0scontroller
         state: restarted
-      when: k0scontroller_is_active.rc == 0
+      when: 
+        - ansible_facts.services['k0scontroller.service'] is defined
+        - ansible_facts.services['k0scontroller.service'].state == 'running'
