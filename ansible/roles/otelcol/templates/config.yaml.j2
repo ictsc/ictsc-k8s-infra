@@ -8,11 +8,26 @@ receivers:
     collection_interval: 30s
     scrapers:
       cpu:
+      load:
       memory:
+        metrics:
+          system.linux.memory.available:
+            enabled: true
+          system.memory.limit:
+            enabled: true
       disk:
+        include:
+          match_type: regexp
+          devices:
+            - "^[sv]d[a-z]+[0-9]*$"
       network:
+        include:
+          match_type: regexp
+          interfaces:
+            - "eth.*"
+            - "en.*"
       paging:
-      processes:
+      system:
 
   prometheus:
     config:
@@ -53,6 +68,7 @@ exporters:
       authorization: "Bearer ${file:${env:CREDENTIALS_DIRECTORY}/sakuracloud-metrics-token}"
     resource_to_telemetry_conversion:
       enabled: true
+    send_metadata: true
 
 service:
   telemetry:
