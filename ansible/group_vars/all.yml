@@ -1,0 +1,3 @@
+---
+# Global variables for all hosts
+env: "{{ lookup('env', 'ENV') | default('dev', true) }}"

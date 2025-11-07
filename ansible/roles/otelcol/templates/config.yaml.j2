@@ -40,6 +40,12 @@ processors:
         host.id:
           enabled: true
 
+  resource:
+    attributes:
+      - action: insert
+        key: deployment.environment.name
+        value: "{{ env }}"
+
 exporters:
   prometheusremotewrite/sakura:
     endpoint: "https://{{ otelcol_sakuracloud_metrics_endpoint }}/prometheus/api/v1/write"
@@ -66,5 +72,9 @@ service:
   pipelines:
     metrics:
       receivers: [otlp, hostmetrics, prometheus]
-      processors: [memory_limiter, batch, resourcedetection]
+      processors:
+        - memory_limiter
+        - batch
+        - resourcedetection
+        - resource
       exporters: [prometheusremotewrite/sakura]
