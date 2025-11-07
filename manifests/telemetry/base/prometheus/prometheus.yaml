@@ -1,0 +1,70 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  otlp:
+    convertHistogramsToNHCB: true
+    promoteResourceAttributes:
+      - service.instance.id
+      - service.name
+      - service.namespace
+      - service.version
+      - cloud.availability_zone
+      - cloud.region
+      - container.name
+      - deployment.environment
+      - deployment.environment.name
+      - k8s.cluster.name
+      - k8s.container.name
+      - k8s.cronjob.name
+      - k8s.daemonset.name
+      - k8s.deployment.name
+      - k8s.job.name
+      - k8s.namespace.name
+      - k8s.pod.name
+      - k8s.replicaset.name
+      - k8s.statefulset.name
+  tsdb:
+    outOfOrderTimeWindow: 30m
+  retention: 24h
+
+  image: prometheus:TO_BE_FILLED
+  replicas: 2
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+          topologyKey: kubernetes.io/hostname
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: topolvm-provisioner
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: web
+              protocol: TCP
+          rules:
+            http: [{}]

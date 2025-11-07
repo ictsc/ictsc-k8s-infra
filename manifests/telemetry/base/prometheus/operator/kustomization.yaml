@@ -1,0 +1,9 @@
+labels:
+  - pairs:
+      app.kubernetes.io/name: prometheus-operator
+      app.kubernetes.io/component: controller
+
+resources:
+  - controller-rbac.yaml
+  - controller-deploy.yaml
+  - controller-service.yaml
