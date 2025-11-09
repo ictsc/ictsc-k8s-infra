@@ -31,7 +31,6 @@ ipam:
 loadBalancer:
   mode: dsr
   dsrDispatch: geneve
-  # dsrDispatch: opt
 tunnelProtocol: geneve
 underlayProtocol: ipv6
 
