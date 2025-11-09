@@ -28,6 +28,12 @@ enableIPv6Masquerade: false
 ipam:
   mode: kubernetes
 
+loadBalancer:
+  mode: dsr
+  dsrDispatch: geneve
+tunnelProtocol: geneve
+underlayProtocol: ipv6
+
 gatewayAPI:
   enabled: true
   gatewayClass:

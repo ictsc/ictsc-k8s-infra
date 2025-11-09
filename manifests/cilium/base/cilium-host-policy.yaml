@@ -15,6 +15,9 @@ spec:
             # Health checks from other nodes
             - port: "4240"
               protocol: TCP
+            # Geneve
+            - port: "6081"
+              protocol: UDP
     - toPorts:
         - ports:
             # SSH

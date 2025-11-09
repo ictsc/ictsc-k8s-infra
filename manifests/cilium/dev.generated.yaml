@@ -767,8 +767,10 @@ data:
   bpf-events-trace-enabled: "true"
   bpf-lb-acceleration: disabled
   bpf-lb-algorithm-annotation: "false"
+  bpf-lb-dsr-dispatch: geneve
   bpf-lb-external-clusterip: "false"
   bpf-lb-map-max: "65536"
+  bpf-lb-mode: dsr
   bpf-lb-mode-annotation: "false"
   bpf-lb-sock: "false"
   bpf-lb-source-range-all-types: "false"
@@ -911,8 +913,9 @@ data:
   tofqdns-max-deferred-connection-deletes: "10000"
   tofqdns-preallocate-identities: "true"
   tofqdns-proxy-response-max-delay: 100ms
-  tunnel-protocol: vxlan
+  tunnel-protocol: geneve
   tunnel-source-port-range: 0-0
+  underlay-protocol: ipv6
   unmanaged-pod-watcher-interval: "15"
   vtep-cidr: ""
   vtep-endpoint: ""
@@ -2250,6 +2253,8 @@ spec:
     - ports:
       - port: "4240"
         protocol: TCP
+      - port: "6081"
+        protocol: UDP
   - toPorts:
     - ports:
       - port: "22"
