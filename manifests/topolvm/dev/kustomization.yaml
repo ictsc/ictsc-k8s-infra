@@ -7,7 +7,7 @@ components:
 helmCharts:
   - name: topolvm
     repo: https://topolvm.github.io/topolvm
-    version: 15.7.0
+    version: 15.7.1
     releaseName: topolvm
     namespace: topolvm-system
     valuesFile: ../base/topolvm-values.yaml

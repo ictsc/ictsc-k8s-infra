@@ -13,8 +13,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-provisioner
 parameters:
   csi.storage.k8s.io/fstype: ext4
@@ -27,8 +27,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-controller
   namespace: topolvm-system
 ---
@@ -39,8 +39,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-lvmd
   namespace: topolvm-system
 ---
@@ -51,8 +51,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-node
   namespace: topolvm-system
 ---
@@ -63,8 +63,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: external-provisioner-cfg
   namespace: topolvm-system
 rules:
@@ -111,8 +111,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: external-resizer-cfg
   namespace: topolvm-system
 rules:
@@ -135,8 +135,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: external-snapshotter-leaderelection
   namespace: topolvm-system
 rules:
@@ -159,8 +159,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: leader-election
   namespace: topolvm-system
 rules:
@@ -193,8 +193,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-external-provisioner-runner
 rules:
 - apiGroups:
@@ -281,8 +281,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-external-resizer-runner
 rules:
 - apiGroups:
@@ -342,8 +342,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-external-snapshotter-runner
 rules:
 - apiGroups:
@@ -414,8 +414,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system:controller
 rules:
 - apiGroups:
@@ -476,8 +476,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system:node
 rules:
 - apiGroups:
@@ -519,8 +519,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: csi-provisioner-role-cfg
   namespace: topolvm-system
 roleRef:
@@ -539,8 +539,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: csi-resizer-role-cfg
   namespace: topolvm-system
 roleRef:
@@ -559,8 +559,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: external-snapshotter-leaderelection
   namespace: topolvm-system
 roleRef:
@@ -579,8 +579,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: leader-election
   namespace: topolvm-system
 roleRef:
@@ -599,8 +599,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-csi-provisioner-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -618,8 +618,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-csi-resizer-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -637,8 +637,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system-csi-snapshotter-role
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -656,8 +656,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system:controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -675,8 +675,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-system:node
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -697,8 +697,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
     idx: "0"
   name: topolvm-lvmd-0
   namespace: topolvm-system
@@ -710,8 +710,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-controller
   namespace: topolvm-system
 spec:
@@ -740,8 +740,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-controller
   namespace: topolvm-system
 spec:
@@ -777,7 +777,7 @@ spec:
         - /topolvm-controller
         - --leader-election-namespace=topolvm-system
         - --cert-dir=/certs
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         livenessProbe:
           httpGet:
             path: /healthz
@@ -804,6 +804,11 @@ spec:
             path: /readyz
             port: readyz
             scheme: HTTP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /run/topolvm
           name: socket-dir
@@ -827,11 +832,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: csi-provisioner
         ports:
         - containerPort: 9809
           name: csi-provisioner
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /run/topolvm
           name: socket-dir
@@ -841,11 +851,16 @@ spec:
         - --leader-election
         - --leader-election-namespace=topolvm-system
         - --http-endpoint=:9810
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: csi-resizer
         ports:
         - containerPort: 9810
           name: csi-resizer
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /run/topolvm
           name: socket-dir
@@ -855,11 +870,16 @@ spec:
         - --leader-election
         - --leader-election-namespace=topolvm-system
         - --http-endpoint=:9811
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: csi-snapshotter
         ports:
         - containerPort: 9811
           name: csi-snapshotter
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /run/topolvm
           name: socket-dir
@@ -867,8 +887,13 @@ spec:
         - /livenessprobe
         - --csi-address=/run/topolvm/csi-topolvm.sock
         - --http-endpoint=:9808
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: liveness-probe
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - mountPath: /run/topolvm
           name: socket-dir
@@ -903,8 +928,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
     idx: "0"
   name: topolvm-lvmd-0
   namespace: topolvm-system
@@ -918,7 +943,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 9d022e27e9f9521723b96ff594a7c7c334f7bdedcb89d5656fd0ae24f8a51789
+        checksum/config: 68c736da6c2144a08a25f6c828947ce9691b65d95847676fcbdb8866cbcf1a8d
         prometheus.io/port: metrics
       labels:
         app.kubernetes.io/component: lvmd
@@ -929,7 +954,7 @@ spec:
       containers:
       - command:
         - /lvmd
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         livenessProbe:
           exec:
             command:
@@ -974,8 +999,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-node
   namespace: topolvm-system
 spec:
@@ -1003,7 +1028,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         livenessProbe:
           httpGet:
             path: /healthz
@@ -1039,7 +1064,7 @@ spec:
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
         - --kubelet-registration-path=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
         - --http-endpoint=:9809
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         lifecycle:
           preStop:
             exec:
@@ -1067,7 +1092,7 @@ spec:
         - /livenessprobe
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
         - --http-endpoint=:9808
-        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.0
+        image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: liveness-probe
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
@@ -1106,8 +1131,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-mutatingwebhook
   namespace: topolvm-system
 spec:
@@ -1134,8 +1159,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-webhook-ca
   namespace: topolvm-system
 spec:
@@ -1159,8 +1184,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-webhook-ca
   namespace: topolvm-system
 spec:
@@ -1174,8 +1199,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-webhook-selfsign
   namespace: topolvm-system
 spec:
@@ -1210,8 +1235,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm.io
 spec:
   attachRequired: false
@@ -1229,8 +1254,8 @@ metadata:
     app.kubernetes.io/instance: topolvm
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: topolvm
-    app.kubernetes.io/version: 0.38.0
-    helm.sh/chart: topolvm-15.7.0
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
   name: topolvm-hook
 webhooks:
 - admissionReviewVersions:
