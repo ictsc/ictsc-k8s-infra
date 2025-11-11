@@ -103,7 +103,7 @@ processors:
       # Namespace
       - action: insert
         key: service.instance.id
-        from_attribute: k8s.namepace.uid
+        from_attribute: k8s.namespace.uid
 
 receivers:
   otlp:
