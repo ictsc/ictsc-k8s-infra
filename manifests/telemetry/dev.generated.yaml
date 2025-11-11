@@ -430,7 +430,7 @@ data:
           # Namespace
           - action: insert
             key: service.instance.id
-            from_attribute: k8s.namepace.uid
+            from_attribute: k8s.namespace.uid
 
     receivers:
       otlp:
@@ -499,7 +499,7 @@ metadata:
   labels:
     app.kubernetes.io/component: collector
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-ctbcd9g672
+  name: collector-config-tb5ghm9t4f
   namespace: telemetry
 ---
 apiVersion: v1
@@ -685,7 +685,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-ctbcd9g672
+          name: collector-config-tb5ghm9t4f
         name: config
   updateStrategy:
     rollingUpdate:
