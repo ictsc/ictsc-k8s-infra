@@ -970,6 +970,7 @@ spec:
           protocol: TCP
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /dev
           name: devices-dir

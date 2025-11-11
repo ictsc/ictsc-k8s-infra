@@ -10,6 +10,9 @@ lvmd:
       volume-group: ssd_vg
       default: true
       spare-gb: 10
+  securityContext:
+    privileged: true
+    readOnlyRootFilesystem: true
 
 node:
   kubeletWorkDirectory: /var/lib/k0s/kubelet
