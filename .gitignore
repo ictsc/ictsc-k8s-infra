@@ -5,6 +5,7 @@ terraform/**/.terraform
 terraform/modules/*/.terraform.lock.hcl
 
 ansible/.cache
+ansible/.venv
 ansible/**/__pycache__/
 
 manifests/**/charts

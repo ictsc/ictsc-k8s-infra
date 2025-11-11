@@ -50,3 +50,10 @@ spec:
       - op: add
         path: /admin/address/socket_address/ipv4_compat
         value: true
+  telemetry:
+    metrics:
+      sinks:
+        - type: OpenTelemetry
+          openTelemetry:
+            host: otlp.telemetry.svc.cluster.local
+            port: 4317

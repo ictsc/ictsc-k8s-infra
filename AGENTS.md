@@ -37,8 +37,12 @@ make validate  # Runs both tf-validate and ansible-validate
 
 ### Ansible Operations
 ```bash
-# Generate Kubernetes manifests and run Ansible playbook
+# Generate Kubernetes manifests and run Ansible playbook (default: dev environment)
 make ansible-apply
+
+# Run Ansible playbook for a specific environment
+ENV=staging make ansible-apply
+ENV=prod make ansible-apply
 
 # Validate Ansible playbooks
 make ansible-validate
@@ -56,14 +60,14 @@ make clean-manifests
 ## Architecture and Key Concepts
 
 ### Infrastructure Architecture
-The Terraform module in `terraform/modules/k8s_nodes/` (`terraform/env/dev/main.tf`) provisions:
+The Terraform module in `terraform/modules/k8s_nodes/` (e.g., `terraform/env/dev/main.tf`) provisions:
 - **NAT64 Box**: Single node handling IPv6-to-IPv4 translation
 - **Control Plane**: Configurable number of nodes (default: 3) running k0s API server
 - **Worker Nodes**: Configurable number of nodes (default: 3) for workload scheduling
 - **Load Balancer**: Multiple IPv4 addresses for service ingress (default: 4)
 - **Network**: IPv6 subnets allocated via CIDR subnetting for different node groups
 
-**Key Terraform Outputs** (`terraform/env/dev/main.tf`):
+**Key Terraform Outputs** (e.g., `terraform/env/dev/main.tf`):
 - `ansible_inventory`: Dynamic inventory for Ansible provisioning
 - `k8s_api_host`, `k8s_api_ipv4`, `k8s_api_ipv6`: Kubernetes API access endpoints
 - `web_ipv4`, `web_ipv6`: Load balancer endpoint addresses

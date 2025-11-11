@@ -1,0 +1,16 @@
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: opentelemetry-collector
+
+configMapGenerator:
+  - name: collector-config
+    options:
+      labels:
+        app.kubernetes.io/component: collector
+    files:
+      - config.yaml=collector-config.yaml
+
+resources:
+  - otlp-service.yaml
+  - collector-rbac.yaml
+  - collector-daemonset.yaml
