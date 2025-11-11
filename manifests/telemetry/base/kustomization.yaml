@@ -3,4 +3,5 @@ namespace: telemetry
 resources:
   - namespace.yaml
   - httproute.yaml
+  - ./collector
   - ./prometheus

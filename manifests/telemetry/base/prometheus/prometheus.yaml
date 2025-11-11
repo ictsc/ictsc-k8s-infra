@@ -5,6 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: prometheus
 spec:
+  probeSelector: {}
   otlp:
     convertHistogramsToNHCB: true
     promoteResourceAttributes:
@@ -29,6 +30,9 @@ spec:
       - k8s.statefulset.name
   tsdb:
     outOfOrderTimeWindow: 30m
+  enableFeatures:
+    - native-histograms
+    - promql-experimental-functions
   retention: 24h
 
   image: prometheus:TO_BE_FILLED

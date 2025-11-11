@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: collector
+  labels:
+    app.kubernetes.io/name: collector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: collector
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: collector
+    spec:
+      serviceAccountName: collector
+      containers:
+        - name: otelcol
+          image: opentelemetry-collector-k8s:TO_BE_FILLED
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config
+            - /etc/otelcol/config.yaml
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: K8S_DAEMONSET_NAME
+              value: collector
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: K8S_CLUSTER_NAME
+              value: ictsc-dev #FIXME
+            - name: GOMEMLIMIT
+              value: 128MiB
+          ports:
+            - name: healthz
+              containerPort: 13133
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              memory: 32Mi
+              cpu: 100m
+          livenessProbe:
+            httpGet:
+              path: /
+              port: healthz
+          readinessProbe:
+            httpGet:
+              path: /
+              port: healthz
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol
+      volumes:
+        - name: config
+          configMap:
+            name: collector-config
