@@ -25,13 +25,6 @@ deployment:
       repository: ghcr.io/tosuke-lab/envoy-gateway
       tag: v1.5.4-ipv6 # See: tosuke-lab/gateway#1
     imagePullPolicy: Always
-    podSecurityContext:
-      runAsNonRoot: true
-      runAsUser: 65532
-      runAsGroup: 65532
-      fsGroup: 65532
-      seccompProfile:
-        type: RuntimeDefault
 
 config:
   envoyGateway:
