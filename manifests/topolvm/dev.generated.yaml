@@ -1060,8 +1060,6 @@ spec:
           name: csi-plugin-dir
         - mountPath: /dev
           name: devices-dir
-        - mountPath: /tmp
-          name: tmp-dir
       - command:
         - /csi-node-driver-registrar
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
@@ -1129,8 +1127,6 @@ spec:
           path: /run/topolvm
           type: Directory
         name: lvmd-socket-dir
-      - emptyDir: {}
-        name: tmp-dir
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

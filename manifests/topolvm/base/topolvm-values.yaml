@@ -19,6 +19,3 @@ node:
   securityContext:
     privileged: true
     readOnlyRootFilesystem: true
-  additionalVolumes:
-    - name: tmp-dir
-      emptyDir: {}

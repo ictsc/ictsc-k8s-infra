@@ -10,14 +10,3 @@ patches:
         path: /metadata/annotations/config.kubernetes.io~1local-config
         value: "true"
 
-  # Security hardening: Add /tmp mount to topolvm-node container
-  # Note: securityContext (readOnlyRootFilesystem) and tmp-dir volume are set via values.yaml
-  - target:
-      kind: DaemonSet
-      name: topolvm-node
-    patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/volumeMounts/-
-        value:
-          mountPath: /tmp
-          name: tmp-dir
