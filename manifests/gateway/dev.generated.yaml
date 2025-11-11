@@ -272,7 +272,7 @@ spec:
           - sh
           - -c
           - ip link set dev eth0 mtu 1418
-          image: busybox
+          image: busybox:1.36.1
           name: set-mtu
           securityContext:
             capabilities:
