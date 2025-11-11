@@ -287,6 +287,13 @@ spec:
         labels:
           k8s.ictsc.net/lb-ipv4: "true"
     type: Kubernetes
+  telemetry:
+    metrics:
+      sinks:
+      - openTelemetry:
+          host: otlp.telemetry.svc.cluster.local
+          port: 4317
+        type: OpenTelemetry
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
