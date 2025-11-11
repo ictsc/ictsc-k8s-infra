@@ -550,13 +550,27 @@ spec:
           - args:
             - -c
             - |
-              kubectl create secret generic envoy-oidc-hmac  --from-file=hmac-secret=<(head -c 32 /dev/urandom) --dry-run=client --output=yaml | kubectl replace -f -
+              kubectl create secret generic envoy-oidc-hmac --from-file=hmac-secret=<(head -c 32 /dev/urandom) --dry-run=client --output=yaml | kubectl replace -f -
             command:
             - /bin/sh
             image: alpine/kubectl:1.34.1
             imagePullPolicy: IfNotPresent
             name: hmac-secret-rotation
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
           restartPolicy: Never
+          securityContext:
+            fsGroup: 65532
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
           serviceAccountName: hmac-secret-manager
   schedule: 0 2 1 */3 *
   startingDeadlineSeconds: 3600
@@ -588,7 +602,21 @@ spec:
         image: alpine/kubectl:1.34.1
         imagePullPolicy: IfNotPresent
         name: hmac-secret-init
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
       restartPolicy: Never
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: hmac-secret-manager
   ttlSecondsAfterFinished: 300
 ---
