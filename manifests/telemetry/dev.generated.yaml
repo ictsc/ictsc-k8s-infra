@@ -690,6 +690,7 @@ spec:
           name: config
       securityContext:
         fsGroup: 10001
+        runAsGroup: 10001
         runAsNonRoot: true
         runAsUser: 10001
         seccompProfile:
