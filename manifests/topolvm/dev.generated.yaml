@@ -1086,28 +1086,20 @@ spec:
         ports:
         - containerPort: 9809
           name: healthz
-        securityContext:
-          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
         - mountPath: /registration
           name: registration-dir
-        - mountPath: /tmp
-          name: tmp-dir
       - command:
         - /livenessprobe
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
         - --http-endpoint=:9808
         image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: liveness-probe
-        securityContext:
-          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
-        - mountPath: /tmp
-          name: tmp-dir
       securityContext:
         seccompProfile:
           type: RuntimeDefault

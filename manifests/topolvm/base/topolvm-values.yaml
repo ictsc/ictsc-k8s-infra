@@ -16,3 +16,9 @@ node:
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
+  securityContext:
+    privileged: true
+    readOnlyRootFilesystem: true
+  additionalVolumes:
+    - name: tmp-dir
+      emptyDir: {}
