@@ -13,3 +13,9 @@ lvmd:
 
 node:
   kubeletWorkDirectory: /var/lib/k0s/kubelet
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    privileged: true
+    readOnlyRootFilesystem: true

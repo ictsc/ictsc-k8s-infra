@@ -1046,6 +1046,7 @@ spec:
           protocol: TCP
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
@@ -1097,6 +1098,9 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: topolvm-node
       volumes:
       - hostPath:
