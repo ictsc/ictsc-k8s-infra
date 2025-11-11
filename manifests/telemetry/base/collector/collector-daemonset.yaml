@@ -19,10 +19,22 @@ spec:
         app.kubernetes.io/name: collector
     spec:
       serviceAccountName: collector
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: otelcol
           image: opentelemetry-collector-k8s:TO_BE_FILLED
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           args:
             - --config
             - /etc/otelcol/config.yaml
