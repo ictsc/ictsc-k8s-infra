@@ -1018,6 +1018,9 @@ spec:
         app.kubernetes.io/instance: topolvm
         app.kubernetes.io/name: topolvm
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - command:
         - /topolvm-node
