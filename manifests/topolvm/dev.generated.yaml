@@ -1018,9 +1018,6 @@ spec:
         app.kubernetes.io/instance: topolvm
         app.kubernetes.io/name: topolvm
     spec:
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - command:
         - /topolvm-node
@@ -1100,6 +1097,9 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: topolvm-node
       volumes:
       - hostPath:
