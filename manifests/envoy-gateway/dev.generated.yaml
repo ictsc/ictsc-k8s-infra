@@ -563,11 +563,6 @@ spec:
                 - ALL
               privileged: false
               readOnlyRootFilesystem: true
-              runAsGroup: 65532
-              runAsNonRoot: true
-              runAsUser: 65532
-              seccompProfile:
-                type: RuntimeDefault
           restartPolicy: Never
           securityContext:
             fsGroup: 65532
@@ -614,11 +609,6 @@ spec:
             - ALL
           privileged: false
           readOnlyRootFilesystem: true
-          runAsGroup: 65532
-          runAsNonRoot: true
-          runAsUser: 65532
-          seccompProfile:
-            type: RuntimeDefault
       restartPolicy: Never
       securityContext:
         fsGroup: 65532
