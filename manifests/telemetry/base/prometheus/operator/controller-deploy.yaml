@@ -21,10 +21,6 @@ spec:
       containers:
         - name: prometheus-operator
           image: prometheus-operator:TO_BE_FILLED
-          args:
-            - --kubelet-service=kube-system/kubelet
-            - --kubelet-endpoints=true
-            - --kubelet-endpointslice=false
           env:
             - name: GOGC
               value: "30"

@@ -66,42 +66,62 @@ rules:
   - monitoring.coreos.com
   resources:
   - alertmanagers
-  - alertmanagers/finalizers
-  - alertmanagers/status
   - alertmanagerconfigs
   - prometheuses
-  - prometheuses/finalizers
-  - prometheuses/status
   - prometheusagents
-  - prometheusagents/finalizers
-  - prometheusagents/status
   - thanosrulers
-  - thanosrulers/finalizers
-  - thanosrulers/status
   - scrapeconfigs
-  - scrapeconfigs/status
   - servicemonitors
-  - servicemonitors/status
   - podmonitors
-  - podmonitors/status
   - probes
-  - probes/status
   - prometheusrules
   verbs:
-  - '*'
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - alertmanagers/finalizers
+  - alertmanagers/status
+  - prometheuses/finalizers
+  - prometheuses/status
+  - prometheusagents/finalizers
+  - prometheusagents/status
+  - thanosrulers/finalizers
+  - thanosrulers/status
+  - scrapeconfigs/status
+  - servicemonitors/status
+  - podmonitors/status
+  - probes/status
+  verbs:
+  - update
+  - patch
 - apiGroups:
   - apps
   resources:
   - statefulsets
   verbs:
-  - '*'
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 - apiGroups:
   - ""
   resources:
   - configmaps
   - secrets
   verbs:
-  - '*'
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 - apiGroups:
   - ""
   resources:
@@ -141,15 +161,6 @@ rules:
   verbs:
   - patch
   - create
-- apiGroups:
-  - ""
-  resources:
-  - endpoints
-  verbs:
-  - get
-  - create
-  - update
-  - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -565,11 +576,7 @@ spec:
     spec:
       automountServiceAccountToken: true
       containers:
-      - args:
-        - --kubelet-service=kube-system/kubelet
-        - --kubelet-endpoints=true
-        - --kubelet-endpointslice=false
-        env:
+      - env:
         - name: GOGC
           value: "30"
         image: quay.io/prometheus-operator/prometheus-operator:v0.86.2

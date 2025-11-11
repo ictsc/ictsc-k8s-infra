@@ -13,108 +13,60 @@ metadata:
     app.kubernetes.io/component: controller
   name: prometheus-operator
 rules:
-  - apiGroups:
-      - monitoring.coreos.com
+  - apiGroups: ["monitoring.coreos.com"]
     resources:
       - alertmanagers
-      - alertmanagers/finalizers
-      - alertmanagers/status
       - alertmanagerconfigs
       - prometheuses
+      - prometheusagents
+      - thanosrulers
+      - scrapeconfigs
+      - servicemonitors
+      - podmonitors
+      - probes
+      - prometheusrules
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources:
+      - alertmanagers/finalizers
+      - alertmanagers/status
       - prometheuses/finalizers
       - prometheuses/status
-      - prometheusagents
       - prometheusagents/finalizers
       - prometheusagents/status
-      - thanosrulers
       - thanosrulers/finalizers
       - thanosrulers/status
-      - scrapeconfigs
       - scrapeconfigs/status
-      - servicemonitors
       - servicemonitors/status
-      - podmonitors
       - podmonitors/status
-      - probes
       - probes/status
-      - prometheusrules
-    verbs:
-      - "*"
-  - apiGroups:
-      - apps
-    resources:
-      - statefulsets
-    verbs:
-      - "*"
+    verbs: ["update", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups:
       - ""
     resources:
       - configmaps
       - secrets
-    verbs:
-      - "*"
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
-      - list
-      - delete
-  - apiGroups:
-      - ""
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "delete"]
+  - apiGroups: [""]
     resources:
       - services
       - services/finalizers
-    verbs:
-      - get
-      - create
-      - update
-      - delete
-  - apiGroups:
-      - ""
-    resources:
-      - nodes
-    verbs:
-      - list
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - "events.k8s.io"
-    resources:
-      - events
-    verbs:
-      - patch
-      - create
-  # - apiGroups:
-  #     - networking.k8s.io
-  #   resources:
-  #     - ingresses
-  #   verbs:
-  #     - get
-  #     - list
-  #     - watch
-  # - apiGroups:
-  #     - storage.k8s.io
-  #   resources:
-  #     - storageclasses
-  #   verbs:
-  #     - get
-  - apiGroups:
-      - ""
-    resources:
-      - endpoints
-    verbs:
-      - get
-      - create
-      - update
-      - delete
+    verbs: ["get", "create", "update", "delete"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["patch", "create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
