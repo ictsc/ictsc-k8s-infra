@@ -66,35 +66,49 @@ rules:
   - monitoring.coreos.com
   resources:
   - alertmanagers
-  - alertmanagers/finalizers
-  - alertmanagers/status
   - alertmanagerconfigs
   - prometheuses
-  - prometheuses/finalizers
-  - prometheuses/status
   - prometheusagents
-  - prometheusagents/finalizers
-  - prometheusagents/status
   - thanosrulers
-  - thanosrulers/finalizers
-  - thanosrulers/status
   - scrapeconfigs
-  - scrapeconfigs/status
   - servicemonitors
-  - servicemonitors/status
   - podmonitors
-  - podmonitors/status
   - probes
-  - probes/status
   - prometheusrules
   verbs:
-  - '*'
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - alertmanagers/finalizers
+  - alertmanagers/status
+  - prometheuses/finalizers
+  - prometheuses/status
+  - prometheusagents/finalizers
+  - prometheusagents/status
+  - thanosrulers/finalizers
+  - thanosrulers/status
+  - scrapeconfigs/status
+  - servicemonitors/status
+  - podmonitors/status
+  - probes/status
+  verbs:
+  - update
+  - patch
 - apiGroups:
   - apps
   resources:
   - statefulsets
   verbs:
-  - '*'
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
 - apiGroups:
   - ""
   resources:
