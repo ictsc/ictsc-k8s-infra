@@ -371,6 +371,14 @@ data:
         shutdownManager:
           image: ghcr.io/tosuke-lab/envoy-gateway:v1.5.4-ipv6
       type: Kubernetes
+    telemetry:
+      metrics:
+        sinks:
+        - openTelemetry:
+            host: otlp.telemetry.svc.cluster.local
+            port: 4317
+            protocol: grpc
+          type: OpenTelemetry
 kind: ConfigMap
 metadata:
   labels:

@@ -25,3 +25,14 @@ deployment:
       repository: ghcr.io/tosuke-lab/envoy-gateway
       tag: v1.5.4-ipv6 # See: tosuke-lab/gateway#1
     imagePullPolicy: Always
+
+config:
+  envoyGateway:
+    telemetry:
+      metrics:
+        sinks:
+          - type: OpenTelemetry
+            openTelemetry:
+              protocol: grpc
+              host: otlp.telemetry.svc.cluster.local
+              port: 4317
