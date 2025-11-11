@@ -71,10 +71,23 @@ spec:
           requests:
             cpu: 1m
             memory: 1Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /mnt/secrets-store
           name: secrets-store-inline
           readOnly: true
+      securityContext:
+        fsGroup: 10002
+        runAsGroup: 10002
+        runAsNonRoot: true
+        runAsUser: 10002
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
       - csi:
           driver: secrets-store.csi.k8s.io
