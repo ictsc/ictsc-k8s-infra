@@ -22,6 +22,17 @@ spec:
     kubernetes:
       envoyDeployment:
         replicas: 0 # Replace to $web-gateway-replicas
+        initContainers:
+          - name: set-mtu
+            image: busybox:1.36.1
+            command:
+              - sh
+              - -c
+              # 1500 - 70 (Geneve) - 12 (DSR Option)
+              - ip link set dev eth0 mtu 1418
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
       envoyService:
         labels:
           k8s.ictsc.net/lb-ipv4: "true"
