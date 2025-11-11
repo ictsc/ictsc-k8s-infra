@@ -10,14 +10,8 @@ lvmd:
       volume-group: ssd_vg
       default: true
       spare-gb: 10
-  podSecurityContext:
-    runAsUser: 0
-    runAsGroup: 0
   securityContext:
-    readOnlyRootFilesystem: true
-
-controller:
-  securityContext:
+    privileged: true
     readOnlyRootFilesystem: true
 
 node:
