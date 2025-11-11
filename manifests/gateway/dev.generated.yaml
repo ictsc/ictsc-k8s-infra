@@ -4,6 +4,28 @@ metadata:
   name: gateway
 ---
 apiVersion: v1
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        server_name localhost;
+
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+kind: ConfigMap
+metadata:
+  name: login-nginx-config
+  namespace: gateway
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: login
@@ -35,7 +57,7 @@ spec:
       - image: nginx:1.29.3
         name: nginx
         ports:
-        - containerPort: 80
+        - containerPort: 8080
           name: http
         resources:
           limits:
@@ -51,6 +73,9 @@ spec:
             - ALL
           readOnlyRootFilesystem: true
         volumeMounts:
+        - mountPath: /etc/nginx/conf.d
+          name: nginx-config
+          readOnly: true
         - mountPath: /var/cache/nginx
           name: nginx-cache
         - mountPath: /var/run
@@ -63,6 +88,9 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       volumes:
+      - configMap:
+          name: login-nginx-config
+        name: nginx-config
       - emptyDir: {}
         name: nginx-cache
       - emptyDir: {}
