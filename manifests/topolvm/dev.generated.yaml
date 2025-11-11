@@ -1046,6 +1046,7 @@ spec:
           protocol: TCP
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
@@ -1059,6 +1060,8 @@ spec:
           name: csi-plugin-dir
         - mountPath: /dev
           name: devices-dir
+        - mountPath: /tmp
+          name: tmp-dir
       - command:
         - /csi-node-driver-registrar
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
@@ -1083,20 +1086,28 @@ spec:
         ports:
         - containerPort: 9809
           name: healthz
+        securityContext:
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
         - mountPath: /registration
           name: registration-dir
+        - mountPath: /tmp
+          name: tmp-dir
       - command:
         - /livenessprobe
         - --csi-address=/var/lib/k0s/kubelet/plugins/topolvm.io/node/csi-topolvm.sock
         - --http-endpoint=:9808
         image: ghcr.io/topolvm/topolvm-with-sidecar:0.38.1
         name: liveness-probe
+        securityContext:
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /var/lib/k0s/kubelet/plugins/topolvm.io/node/
           name: node-plugin-dir
+        - mountPath: /tmp
+          name: tmp-dir
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -1126,6 +1137,8 @@ spec:
           path: /run/topolvm
           type: Directory
         name: lvmd-socket-dir
+      - emptyDir: {}
+        name: tmp-dir
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

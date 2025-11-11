@@ -9,3 +9,40 @@ patches:
       - op: add
         path: /metadata/annotations/config.kubernetes.io~1local-config
         value: "true"
+
+  # Security hardening: Add readOnlyRootFilesystem to topolvm-node containers
+  - target:
+      kind: DaemonSet
+      name: topolvm-node
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/readOnlyRootFilesystem
+        value: true
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /tmp
+          name: tmp-dir
+      - op: add
+        path: /spec/template/spec/containers/1/securityContext
+        value:
+          readOnlyRootFilesystem: true
+      - op: add
+        path: /spec/template/spec/containers/1/volumeMounts/-
+        value:
+          mountPath: /tmp
+          name: tmp-dir
+      - op: add
+        path: /spec/template/spec/containers/2/securityContext
+        value:
+          readOnlyRootFilesystem: true
+      - op: add
+        path: /spec/template/spec/containers/2/volumeMounts/-
+        value:
+          mountPath: /tmp
+          name: tmp-dir
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          emptyDir: {}
+          name: tmp-dir
