@@ -10,6 +10,7 @@ spec:
     k0sApiPort: 9443
     port: 6443
     extraArgs:
+      watch-cache: "false"
       authentication-config: "/etc/k0s/auth-config.yaml"
       runtime-config: >-
         admissionregistration.k8s.io/v1beta1=true
