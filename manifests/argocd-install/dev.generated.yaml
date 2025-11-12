@@ -615,7 +615,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argo-cd-argocd-redis-secret-init
-  namespace: argo-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
