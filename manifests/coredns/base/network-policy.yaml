@@ -7,17 +7,20 @@ spec:
     matchLabels:
       k8s-app: kube-dns
   ingress:
-    - fromEndpoints:
-        # Allow from all namespaces
-        - matchExpressions:
-            - key: k8s:io.kubernetes.pod.namespace
-              operator: Exists
+    - fromEntities: [cluster]
       toPorts:
         - ports:
             - port: dns
               protocol: UDP
             - port: dns-tcp
               protocol: TCP
+        - ports:
+            - port: metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
   egress:
     # Forward
     - toCIDR:
