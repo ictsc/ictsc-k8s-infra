@@ -26,7 +26,6 @@ spec:
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: collector
-        - matchLabels: {}
       toPorts:
         - ports:
             - port: http

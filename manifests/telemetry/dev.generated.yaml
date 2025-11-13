@@ -905,7 +905,11 @@ spec:
           name: config
           readOnly: true
       securityContext:
+        runAsGroup: 65532
         runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: target-allocator
       volumes:
       - configMap:
@@ -1106,7 +1110,6 @@ spec:
   - fromEndpoints:
     - matchLabels:
         app.kubernetes.io/name: collector
-    - matchLabels: {}
     toPorts:
     - ports:
       - port: http

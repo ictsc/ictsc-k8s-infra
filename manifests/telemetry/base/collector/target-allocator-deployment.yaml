@@ -17,6 +17,10 @@ spec:
       serviceAccountName: target-allocator
       securityContext:
         runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: target-allocator
           image: opentelemetry-target-allocator:TO_BE_FILLED
