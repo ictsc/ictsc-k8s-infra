@@ -966,12 +966,10 @@ spec:
               fieldPath: status.hostIP
         - name: K8S_CLUSTER_NAME
           value: ictsc-dev
-        - name: POD_MEMORY_LIMIT
+        - name: GOMEMLIMIT
           valueFrom:
             resourceFieldRef:
               resource: limits.memory
-        - name: GOMEMLIMIT
-          value: $(POD_MEMORY_LIMIT)B
         image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1007,10 +1005,9 @@ spec:
         - mountPath: /etc/otelcol
           name: config
       securityContext:
-        fsGroup: 10001
-        runAsGroup: 10001
+        runAsGroup: 65532
         runAsNonRoot: true
-        runAsUser: 10001
+        runAsUser: 65532
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: collector

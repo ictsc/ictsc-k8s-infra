@@ -1,17 +1,12 @@
 resources:
   - ../base
+  - cluster-param.yaml
 
 configurations:
   - ../crds/images_transformer_configurations.yaml
 
-patches:
-  - target:
-      kind: HTTPRoute
-      name: telemetry
-    patch: |-
-      - op: replace
-        path: /spec/hostnames/0
-        value: "telemetry.k8s-dev.ictsc.net"
+components:
+  - ../components
 
 images:
   - name: opentelemetry-collector-k8s

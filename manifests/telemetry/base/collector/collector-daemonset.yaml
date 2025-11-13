@@ -21,9 +21,8 @@ spec:
       serviceAccountName: collector
       securityContext:
         runAsNonRoot: true
-        runAsUser: 10001
-        runAsGroup: 10001
-        fsGroup: 10001
+        runAsUser: 65532
+        runAsGroup: 65532
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -67,13 +66,11 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: K8S_CLUSTER_NAME
-              value: ictsc-dev #FIXME
-            - name: POD_MEMORY_LIMIT
+              value: $cluster-name
+            - name: GOMEMLIMIT
               valueFrom:
                 resourceFieldRef:
                   resource: limits.memory
-            - name: GOMEMLIMIT
-              value: $(POD_MEMORY_LIMIT)B
           ports:
             - name: healthz
               containerPort: 13133
