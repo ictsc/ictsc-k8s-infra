@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-allocator
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+spec:
+  selector:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: target-allocator
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-target-allocator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: collector
+        - matchLabels: {}
+      toPorts:
+        - ports:
+            - port: http
+              protocol: TCP
