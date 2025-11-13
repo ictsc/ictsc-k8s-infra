@@ -25,4 +25,12 @@ spec:
             http:
               - method: POST
                 path: /metrics/.+
-    #TODO(#24): Scraper からの GET /metrics を許可する
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: "9091"
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics

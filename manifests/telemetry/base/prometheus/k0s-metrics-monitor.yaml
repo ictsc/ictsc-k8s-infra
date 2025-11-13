@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: k0s-metrics
+spec:
+  jobLabel: app
+  namespaceSelector:
+    matchNames: [k0s-system]
+  selector:
+    matchLabels:
+      app: k0s-observability
+      component: pushgateway
+  endpoints:
+    - path: /metrics
+      port: http
+      interval: 30s

@@ -1195,3 +1195,76 @@ spec:
         storageClassName: topolvm-provisioner
   tsdb:
     outOfOrderTimeWindow: 30m
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: coredns
+  namespace: telemetry
+spec:
+  endpoints:
+  - interval: 15s
+    port: metrics
+  namespaceSelector:
+    matchNames:
+    - kube-system
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: k0s-metrics
+  namespace: telemetry
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: http
+  jobLabel: app
+  namespaceSelector:
+    matchNames:
+    - k0s-system
+  selector:
+    matchLabels:
+      app: k0s-observability
+      component: pushgateway
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: kube-apiserver
+  namespace: telemetry
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      serverName: kubernetes
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 5s
+    path: /metrics/slis
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      serverName: kubernetes
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes
