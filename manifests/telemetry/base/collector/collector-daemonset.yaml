@@ -62,10 +62,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: K8S_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: K8S_CLUSTER_NAME
               value: ictsc-dev #FIXME
+            - name: POD_MEMORY_LIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
             - name: GOMEMLIMIT
-              value: 128MiB
+              value: $(POD_MEMORY_LIMIT)B
           ports:
             - name: healthz
               containerPort: 13133
@@ -75,10 +83,10 @@ spec:
               containerPort: 4318
           resources:
             limits:
-              memory: 128Mi
-              cpu: 500m
+              memory: 512Mi
+              cpu: 100m
             requests:
-              memory: 32Mi
+              memory: 128Mi
               cpu: 100m
           livenessProbe:
             httpGet:
