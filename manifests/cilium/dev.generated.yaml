@@ -774,6 +774,7 @@ data:
   clustermesh-enable-mcs-api: "false"
   cni-exclusive: "true"
   cni-log-file: /var/run/cilium/cilium-cni.log
+  controller-group-metrics: write-cni-file sync-host-ips sync-lb-maps-with-k8s-services
   custom-cni-conf: "false"
   datapath-mode: veth
   debug: "false"
@@ -798,6 +799,7 @@ data:
   enable-health-checking: "true"
   enable-host-firewall: "true"
   enable-hubble: "true"
+  enable-hubble-open-metrics: "true"
   enable-ipv4: "false"
   enable-ipv4-big-tcp: "false"
   enable-ipv4-masquerade: "true"
@@ -837,6 +839,9 @@ data:
   http-retry-count: "3"
   hubble-disable-tls: "false"
   hubble-listen-address: :4244
+  hubble-metrics: dns drop tcp flow port-distribution icmp httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+  hubble-metrics-server: :9965
+  hubble-metrics-server-enable-tls: "false"
   hubble-network-policy-correlation-enabled: "true"
   hubble-prefer-ipv6: "true"
   hubble-socket-path: /var/run/cilium/hubble.sock
@@ -880,6 +885,7 @@ data:
   policy-secrets-only-from-secrets-namespace: "true"
   preallocate-bpf-maps: "false"
   procfs: /host/proc
+  prometheus-serve-addr: :9962
   proxy-connect-timeout: "2"
   proxy-idle-timeout-seconds: "60"
   proxy-initial-fetch-timeout: "30"
@@ -997,6 +1003,29 @@ spec:
     targetPort: 9964
   selector:
     k8s-app: cilium-envoy
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "9965"
+    prometheus.io/scrape: "true"
+  labels:
+    app.kubernetes.io/name: hubble
+    app.kubernetes.io/part-of: cilium
+    k8s-app: hubble
+  name: hubble-metrics
+  namespace: kube-system
+spec:
+  clusterIP: None
+  ports:
+  - name: hubble-metrics
+    port: 9965
+    protocol: TCP
+    targetPort: hubble-metrics
+  selector:
+    k8s-app: cilium
   type: ClusterIP
 ---
 apiVersion: v1
@@ -1467,6 +1496,8 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: cilium-agent
+        prometheus.io/port: "9962"
+        prometheus.io/scrape: "true"
       labels:
         app.kubernetes.io/name: cilium-agent
         app.kubernetes.io/part-of: cilium
@@ -1562,6 +1593,19 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
         name: cilium-agent
+        ports:
+        - containerPort: 4244
+          hostPort: 4244
+          name: peer-service
+          protocol: TCP
+        - containerPort: 9962
+          hostPort: 9962
+          name: prometheus
+          protocol: TCP
+        - containerPort: 9965
+          hostPort: 9965
+          name: hubble-metrics
+          protocol: TCP
         readinessProbe:
           failureThreshold: 3
           httpGet:
