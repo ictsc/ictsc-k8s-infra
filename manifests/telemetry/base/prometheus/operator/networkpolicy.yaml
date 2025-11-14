@@ -1,0 +1,43 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-operator
+  labels:
+    app.kubernetes.io/component: controller
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-operator
+      app.kubernetes.io/component: controller
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: http
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: prometheus-operated
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: prometheus-operator
+      app.kubernetes.io/instance: prometheus
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: web # Prometheus web
+              protocol: TCP
+            - port: http # Thanos HTTP
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
