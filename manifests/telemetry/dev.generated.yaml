@@ -315,6 +315,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
     app.kubernetes.io/part-of: opentelemetry-collector
   name: telemetry-target-allocator
 rules:
@@ -449,6 +450,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
     app.kubernetes.io/part-of: opentelemetry-collector
   name: telemetry-target-allocator
 roleRef:
@@ -496,6 +498,7 @@ data:
           metadata:
             - k8s.pod.name
             - k8s.pod.uid
+            - k8s.pod.ip
             - k8s.deployment.name
             - k8s.daemonset.name
             - k8s.statefulset.name
@@ -600,6 +603,13 @@ data:
       k8s_cluster:
         k8s_leader_elector: k8s_leader_elector
         collection_interval: 15s
+        node_conditions_to_report:
+          - Ready
+          - MemoryPressure
+        allocatable_types_to_report:
+          - cpu
+          - memory
+          - pods
 
       kubeletstats:
         collection_interval: 15s
@@ -607,6 +617,11 @@ data:
         auth_type: serviceAccount
         endpoint: "https://[${env:K8S_NODE_IP}]:10250"
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        metric_groups:
+          - container
+          - pod
+          - node
+          - volume
 
       prometheus/kubelet:
         config:
@@ -703,7 +718,7 @@ metadata:
   labels:
     app.kubernetes.io/component: collector
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-7m6tmkm27g
+  name: collector-config-ch228md9km
   namespace: telemetry
 ---
 apiVersion: v1
@@ -1013,7 +1028,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-7m6tmkm27g
+          name: collector-config-ch228md9km
         name: config
   updateStrategy:
     rollingUpdate:
@@ -1181,6 +1196,8 @@ spec:
     - k8s.pod.name
     - k8s.replicaset.name
     - k8s.statefulset.name
+    - k8s.node.name
+    - k8s.volume.name
   probeSelector: {}
   replicas: 2
   retention: 24h
@@ -1191,7 +1208,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 2Gi
         storageClassName: topolvm-provisioner
   tsdb:
     outOfOrderTimeWindow: 30m

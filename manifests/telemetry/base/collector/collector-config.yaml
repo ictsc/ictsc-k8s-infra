@@ -31,6 +31,7 @@ processors:
       metadata:
         - k8s.pod.name
         - k8s.pod.uid
+        - k8s.pod.ip
         - k8s.deployment.name
         - k8s.daemonset.name
         - k8s.statefulset.name
@@ -135,6 +136,13 @@ receivers:
   k8s_cluster:
     k8s_leader_elector: k8s_leader_elector
     collection_interval: 15s
+    node_conditions_to_report:
+      - Ready
+      - MemoryPressure
+    allocatable_types_to_report:
+      - cpu
+      - memory
+      - pods
 
   kubeletstats:
     collection_interval: 15s
@@ -142,6 +150,11 @@ receivers:
     auth_type: serviceAccount
     endpoint: "https://[${env:K8S_NODE_IP}]:10250"
     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    metric_groups:
+      - container
+      - pod
+      - node
+      - volume
 
   prometheus/kubelet:
     config:
