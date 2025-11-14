@@ -1,21 +1,19 @@
 resources:
   - ../base
+  - cluster-param.yaml
 
 configurations:
   - ../crds/images_transformer_configurations.yaml
 
-patches:
-  - target:
-      kind: HTTPRoute
-      name: telemetry
-    patch: |-
-      - op: replace
-        path: /spec/hostnames/0
-        value: "telemetry.k8s-dev.ictsc.net"
+components:
+  - ../components
 
 images:
   - name: opentelemetry-collector-k8s
     newName: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+    newTag: 0.139.0
+  - name: opentelemetry-target-allocator
+    newName: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
     newTag: 0.139.0
   - name: prometheus-operator
     newName: quay.io/prometheus-operator/prometheus-operator

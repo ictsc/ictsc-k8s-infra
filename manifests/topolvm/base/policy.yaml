@@ -16,3 +16,24 @@ spec:
         - ports:
             - port: webhook
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: topolvm-metrics
+  labels:
+    app.kubernetes.io/part-of: topolvm
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: topolvm
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics

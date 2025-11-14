@@ -24,6 +24,15 @@ metadata:
   name: prometheus-operator
   namespace: telemetry
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: target-allocator
+  namespace: telemetry
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -270,6 +279,80 @@ rules:
   - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:kubelet-stats-receiver
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes/stats
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:kubernetes-metrics
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes/metrics
+  verbs:
+  - get
+- nonResourceURLs:
+  - /metrics
+  - /metrics/slis
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-target-allocator
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  - podmonitors
+  - prometheusrules
+  - probes
+  - scrapeconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - nodes
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
@@ -333,6 +416,52 @@ subjects:
   name: collector
   namespace: telemetry
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:kubelet-stats-receiver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-collector:kubelet-stats-receiver
+subjects:
+- kind: ServiceAccount
+  name: collector
+  namespace: telemetry
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:kubernetes-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-collector:kubernetes-metrics
+subjects:
+- kind: ServiceAccount
+  name: collector
+  namespace: telemetry
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-target-allocator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-target-allocator
+subjects:
+- kind: ServiceAccount
+  name: target-allocator
+  namespace: telemetry
+---
 apiVersion: v1
 data:
   config.yaml: |
@@ -369,7 +498,12 @@ data:
           metadata:
             - k8s.pod.name
             - k8s.pod.uid
+            - k8s.pod.ip
             - k8s.deployment.name
+            - k8s.daemonset.name
+            - k8s.statefulset.name
+            - k8s.cronjob.name
+            - k8s.job.name
             - k8s.namespace.name
             - k8s.node.name
             - k8s.pod.start_time
@@ -443,6 +577,21 @@ data:
             key: service.instance.id
             from_attribute: k8s.namespace.uid
 
+      resource/kubelet:
+        attributes:
+          - action: insert
+            key: k8s.node.name
+            value: "${env:K8S_NODE_NAME}"
+          - action: insert
+            key: service.name
+            value: kubelet
+          - action: insert
+            key: service.instance.id
+            from_attribute: k8s.pod.uid
+          - action: insert
+            key: service.instance.id
+            from_attribute: k8s.node.name
+
     receivers:
       otlp:
         protocols:
@@ -454,6 +603,46 @@ data:
       k8s_cluster:
         k8s_leader_elector: k8s_leader_elector
         collection_interval: 15s
+        node_conditions_to_report:
+          - Ready
+          - MemoryPressure
+        allocatable_types_to_report:
+          - cpu
+          - memory
+          - pods
+
+      kubeletstats:
+        collection_interval: 15s
+        initial_delay: 1s
+        auth_type: serviceAccount
+        endpoint: "https://[${env:K8S_NODE_IP}]:10250"
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        metric_groups:
+          - container
+          - pod
+          - node
+          - volume
+
+      prometheus/kubelet:
+        config:
+          scrape_configs:
+            - job_name: kubelet
+              scrape_interval: 15s
+              scheme: https
+              tls_config:
+                ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              authorization:
+                type: Bearer
+                credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+              static_configs:
+                - targets:
+                    - "[${env:K8S_NODE_IP}]:10250"
+
+      prometheus:
+        target_allocator:
+          endpoint: http://target-allocator
+          interval: 30s
+          collector_id: "${env:POD_NAME}"
 
     service:
       extensions:
@@ -469,12 +658,31 @@ data:
             - batch
           exporters: [forward]
 
+        metrics/prometheus:
+          receivers: [prometheus]
+          processors:
+            - memory_limiter
+            - batch
+            - k8sattributes
+          exporters: [forward]
+
         metrics/k8s_cluster:
           receivers: [k8s_cluster]
           processors:
             - memory_limiter
             - batch
             - resource/k8s_cluster
+          exporters: [forward]
+
+        metrics/kubeletstats:
+          receivers:
+            - kubeletstats
+            - prometheus/kubelet
+          processors:
+            - memory_limiter
+            - batch
+            - k8sattributes
+            - resource/kubelet
           exporters: [forward]
 
         metrics/export:
@@ -510,7 +718,30 @@ metadata:
   labels:
     app.kubernetes.io/component: collector
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-tb5ghm9t4f
+  name: collector-config-ch228md9km
+  namespace: telemetry
+---
+apiVersion: v1
+data:
+  targetallocator.yaml: |
+    collector_selector:
+      matchLabels:
+        app.kubernetes.io/name: collector
+
+    allocation_strategy: per-node
+    allocation_fallback_strategy: least-weighted
+
+    prometheus_cr:
+      enabled: true
+      scrape_interval: 15s
+      service_monitor_selector: {}
+      pod_monitor_selector: {}
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: target-allocator-config
   namespace: telemetry
 ---
 apiVersion: v1
@@ -552,6 +783,22 @@ spec:
   selector:
     app.kubernetes.io/component: controller
     app.kubernetes.io/name: prometheus-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: target-allocator
+  namespace: telemetry
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: opentelemetry-target-allocator
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -614,6 +861,77 @@ spec:
       serviceAccountName: prometheus-operator
 ---
 apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: target-allocator
+  namespace: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-target-allocator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opentelemetry-target-allocator
+    spec:
+      containers:
+      - env:
+        - name: OTELCOL_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.139.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: target-allocator
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /conf/
+          name: config
+          readOnly: true
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: target-allocator
+      volumes:
+      - configMap:
+          name: target-allocator-config
+        name: config
+---
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -657,10 +975,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
+        - name: K8S_NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: K8S_CLUSTER_NAME
           value: ictsc-dev
         - name: GOMEMLIMIT
-          value: 128MiB
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.memory
         image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -681,11 +1005,11 @@ spec:
             port: healthz
         resources:
           limits:
-            cpu: 500m
-            memory: 128Mi
+            cpu: 100m
+            memory: 512Mi
           requests:
             cpu: 100m
-            memory: 32Mi
+            memory: 128Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -696,16 +1020,15 @@ spec:
         - mountPath: /etc/otelcol
           name: config
       securityContext:
-        fsGroup: 10001
-        runAsGroup: 10001
+        runAsGroup: 65532
         runAsNonRoot: true
-        runAsUser: 10001
+        runAsUser: 65532
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-tb5ghm9t4f
+          name: collector-config-ch228md9km
         name: config
   updateStrategy:
     rollingUpdate:
@@ -783,6 +1106,27 @@ spec:
         - method: GET
           path: /metrics
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: opentelemetry-target-allocator
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: target-allocator
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: opentelemetry-target-allocator
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: collector
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -852,6 +1196,8 @@ spec:
     - k8s.pod.name
     - k8s.replicaset.name
     - k8s.statefulset.name
+    - k8s.node.name
+    - k8s.volume.name
   probeSelector: {}
   replicas: 2
   retention: 24h
@@ -862,7 +1208,80 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 2Gi
         storageClassName: topolvm-provisioner
   tsdb:
     outOfOrderTimeWindow: 30m
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: coredns
+  namespace: telemetry
+spec:
+  endpoints:
+  - interval: 15s
+    port: metrics
+  namespaceSelector:
+    matchNames:
+    - kube-system
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: k0s-metrics
+  namespace: telemetry
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: http
+  jobLabel: app
+  namespaceSelector:
+    matchNames:
+    - k0s-system
+  selector:
+    matchLabels:
+      app: k0s-observability
+      component: pushgateway
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: prometheus
+  name: kube-apiserver
+  namespace: telemetry
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      serverName: kubernetes
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 5s
+    path: /metrics/slis
+    port: https
+    scheme: https
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      serverName: kubernetes
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes

@@ -14,3 +14,6 @@ resources:
   - otlp-service.yaml
   - collector-rbac.yaml
   - collector-daemonset.yaml
+  - target-allocator-rbac.yaml
+  - target-allocator-deployment.yaml
+  - target-allocator-service.yaml

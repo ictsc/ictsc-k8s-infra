@@ -9,3 +9,4 @@ labels:
 
 resources:
   - ./sakuracloud-provider
+  - ./monitor.yaml

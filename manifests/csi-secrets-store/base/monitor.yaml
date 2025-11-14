@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: csi-driver
+spec:
+  selector:
+    matchLabels:
+      app: secrets-store-csi-driver
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: metrics
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: csi-driver
+spec:
+  endpointSelector:
+    matchLabels:
+      app: secrets-store-csi-driver
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics

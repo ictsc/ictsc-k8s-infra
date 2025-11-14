@@ -492,6 +492,44 @@ spec:
       maxUnavailable: 1
     type: RollingUpdate
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: csi-secrets-store
+  name: csi-secrets-store-csi-driver
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app: secrets-store-csi-driver
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: csi-secrets-store
+  name: csi-secrets-store-csi-driver
+  namespace: kube-system
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app: secrets-store-csi-driver
+---
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:

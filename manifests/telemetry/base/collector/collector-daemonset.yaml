@@ -21,9 +21,8 @@ spec:
       serviceAccountName: collector
       securityContext:
         runAsNonRoot: true
-        runAsUser: 10001
-        runAsGroup: 10001
-        fsGroup: 10001
+        runAsUser: 65532
+        runAsGroup: 65532
         seccompProfile:
           type: RuntimeDefault
       containers:
@@ -62,10 +61,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: K8S_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: K8S_CLUSTER_NAME
-              value: ictsc-dev #FIXME
+              value: $cluster-name
             - name: GOMEMLIMIT
-              value: 128MiB
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
           ports:
             - name: healthz
               containerPort: 13133
@@ -75,10 +80,10 @@ spec:
               containerPort: 4318
           resources:
             limits:
-              memory: 128Mi
-              cpu: 500m
+              memory: 512Mi
+              cpu: 100m
             requests:
-              memory: 32Mi
+              memory: 128Mi
               cpu: 100m
           livenessProbe:
             httpGet:

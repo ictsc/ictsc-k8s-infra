@@ -8,3 +8,4 @@ labels:
 #TODO: Hubble Relay/UI Deployments can be split from Cilium install manifests
 resources:
   - hubble-ui-route.yaml
+  - monitors.yaml

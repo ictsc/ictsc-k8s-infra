@@ -82,6 +82,53 @@ subjects:
   - kind: ServiceAccount
     name: collector
 ---
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.139.0/receiver/kubeletstatsreceiver#role-based-access-control
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: telemetry-collector:kubelet-stats-receiver
+rules:
+  - apiGroups: [""]
+    resources: ["nodes/stats"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: telemetry-collector:kubelet-stats-receiver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-collector:kubelet-stats-receiver
+subjects:
+  - kind: ServiceAccount
+    name: collector
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: telemetry-collector:kubernetes-metrics
+rules:
+  - apiGroups: [""]
+    resources: ["nodes/metrics"]
+    verbs: ["get"]
+  - nonResourceURLs:
+      - "/metrics"
+      - "/metrics/slis"
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: telemetry-collector:kubernetes-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-collector:kubernetes-metrics
+subjects:
+  - kind: ServiceAccount
+    name: collector
+---
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.139.0/extension/k8sleaderelector
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

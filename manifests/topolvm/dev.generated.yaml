@@ -1233,6 +1233,101 @@ spec:
       - port: webhook
         protocol: TCP
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: topolvm
+  name: topolvm-metrics
+  namespace: topolvm-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: topolvm
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: topolvm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: topolvm
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
+  name: topolvm-controller
+  namespace: topolvm-system
+spec:
+  namespaceSelector:
+    matchNames:
+    - topolvm-system
+  podMetricsEndpoints:
+  - path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: topolvm
+      app.kubernetes.io/name: topolvm
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: topolvm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: topolvm
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
+  name: topolvm-lvmd
+  namespace: topolvm-system
+spec:
+  namespaceSelector:
+    matchNames:
+    - topolvm-system
+  podMetricsEndpoints:
+  - path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: lvmd
+      app.kubernetes.io/instance: topolvm
+      app.kubernetes.io/name: topolvm
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: topolvm
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: topolvm
+    app.kubernetes.io/version: 0.38.1
+    helm.sh/chart: topolvm-15.7.1
+  name: topolvm-node
+  namespace: topolvm-system
+spec:
+  namespaceSelector:
+    matchNames:
+    - topolvm-system
+  podMetricsEndpoints:
+  - path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: node
+      app.kubernetes.io/instance: topolvm
+      app.kubernetes.io/name: topolvm
+---
 apiVersion: storage.k8s.io/v1
 kind: CSIDriver
 metadata:

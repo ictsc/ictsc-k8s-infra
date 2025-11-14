@@ -1,0 +1,55 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cilium-agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cilium-agent
+      app.kubernetes.io/part-of: cilium
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cilium-envoy
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cilium-envoy
+      app.kubernetes.io/part-of: cilium
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: envoy-metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cilium-operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cilium-operator
+      app.kubernetes.io/part-of: cilium
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: prometheus
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cilium-hubble
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hubble
+      app.kubernetes.io/part-of: cilium
+  jobLabel: app.kubernetes.io/name
+  endpoints:
+    - port: hubble-metrics
+      interval: 15s
