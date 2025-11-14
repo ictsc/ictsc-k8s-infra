@@ -13,6 +13,9 @@ lvmd:
   securityContext:
     privileged: true
     readOnlyRootFilesystem: true
+  prometheus:
+    podMonitor:
+      enabled: true
 
 node:
   kubeletWorkDirectory: /var/lib/k0s/kubelet
@@ -22,3 +25,11 @@ node:
   securityContext:
     privileged: true
     readOnlyRootFilesystem: true
+  prometheus:
+    podMonitor:
+      enabled: true
+
+controller:
+  prometheus:
+    podMonitor:
+      enabled: true
