@@ -369,7 +369,7 @@ data:
                     - imagePullPolicy: IfNotPresent
                       name: envoy-ratelimit
         shutdownManager:
-          image: ghcr.io/tosuke-lab/envoy-gateway:v1.5.4-ipv6
+          image: ghcr.io/tosuke-lab/envoy-gateway:v1.6.0-ipv6
       type: Kubernetes
     telemetry:
       metrics:
@@ -466,7 +466,9 @@ spec:
               fieldPath: metadata.namespace
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: cluster.local
-        image: ghcr.io/tosuke-lab/envoy-gateway:v1.5.4-ipv6
+        - name: OTEL_SERVICE_NAME
+          value: envoy-gateway
+        image: ghcr.io/tosuke-lab/envoy-gateway:v1.6.0-ipv6
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

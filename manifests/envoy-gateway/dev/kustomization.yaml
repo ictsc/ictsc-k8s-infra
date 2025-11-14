@@ -8,3 +8,14 @@ helmCharts:
     releaseName: eg
     namespace: envoy-gateway-system
     valuesFile: ../base/helm-values.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: envoy-gateway
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: OTEL_SERVICE_NAME
+          value: envoy-gateway
