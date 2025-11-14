@@ -2,9 +2,6 @@ resources:
   - ../base
   - cluster-param.yaml
 
-configurations:
-  - ../crds/images_transformer_configurations.yaml
-
 components:
   - ../components
 

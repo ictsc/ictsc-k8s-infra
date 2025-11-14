@@ -2,3 +2,6 @@ images:
   - group: monitoring.coreos.com
     kind: Prometheus
     path: spec/image
+  - group: monitoring.coreos.com
+    kind: Prometheus
+    path: spec/thanos/image
