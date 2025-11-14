@@ -345,21 +345,6 @@ spec:
     - op: add
       path: /admin/address/socket_address/ipv4_compat
       value: true
-    - op: add
-      path: /stats_sinks
-      value:
-      - name: envoy.stat_sinks.open_telemetry
-        typed_config:
-          '@type': type.googleapis.com/envoy.extensions.stat_sinks.open_telemetry.v3.SinkConfig
-          grpc_service:
-            envoy_grpc:
-              cluster_name: otel_metric_sink_0
-          resource_detectors:
-          - name: envoy.tracers.opentelemetry.resource_detectors.static_config
-            typed_config:
-              '@type': type.googleapis.com/envoy.extensions.tracers.opentelemetry.resource_detectors.v3.StaticConfigResourceDetectorConfig
-              attributes:
-                k8s.container.name: envoy
     type: JSONPatch
   ipFamily: IPv6
   mergeGateways: true
@@ -390,10 +375,8 @@ spec:
     metrics:
       sinks:
       - openTelemetry:
-          backendRefs:
-          - name: otlp
-            namespace: telemetry
-            port: 4317
+          host: otlp.telemetry.svc.cluster.local
+          port: 4317
         type: OpenTelemetry
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
