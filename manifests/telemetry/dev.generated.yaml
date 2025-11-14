@@ -1306,25 +1306,7 @@ metadata:
     app.kubernetes.io/component: controller
     app.kubernetes.io/name: prometheus-operator
     app.kubernetes.io/part-of: prometheus
-  name: prometheus-operator
-  namespace: telemetry
-spec:
-  jobLabel: app.kubernetes.io/name
-  podMetricsEndpoints:
-  - port: http
-  selector:
-    matchLabels:
-      app.kubernetes.io/component: controller
-      app.kubernetes.io/name: prometheus-operator
----
-apiVersion: monitoring.coreos.com/v1
-kind: PodMonitor
-metadata:
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: prometheus-operator
-    app.kubernetes.io/part-of: prometheus
-  name: prometheus-opereted
+  name: prometheus-operated
   namespace: telemetry
 spec:
   jobLabel: app.kubernetes.io/name
@@ -1337,6 +1319,24 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: prometheus
       app.kubernetes.io/managed-by: prometheus-operator
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/part-of: prometheus
+  name: prometheus-operator
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: prometheus-operator
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
