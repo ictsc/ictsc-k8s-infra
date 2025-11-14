@@ -14,7 +14,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: prometheus-opereted
+  name: prometheus-operated
 spec:
   namespaceSelector:
     any: true
