@@ -5,6 +5,7 @@ labels:
 resources:
   - ./operator
   - prometheus.yaml
+  - ./thanos
   - apiserver-monitor.yaml
   - k0s-metrics-monitor.yaml
   - coredns-monitor.yaml

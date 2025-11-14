@@ -33,6 +33,15 @@ metadata:
   name: target-allocator
   namespace: telemetry
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-query
+  namespace: telemetry
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -754,7 +763,8 @@ metadata:
 spec:
   internalTrafficPolicy: Local
   ports:
-  - name: grpc
+  - appProtocol: kubernetes.io/h2c
+    name: grpc
     port: 4317
     targetPort: otlp-grpc
   - name: http
@@ -762,27 +772,6 @@ spec:
     targetPort: otlp-http
   selector:
     app.kubernetes.io/name: collector
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    prometheus.io/port: "8080"
-    prometheus.io/scrape: "true"
-  labels:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: prometheus-operator
-    app.kubernetes.io/part-of: prometheus
-  name: prometheus-operator
-  namespace: telemetry
-spec:
-  ports:
-  - name: http
-    port: 8080
-    targetPort: http
-  selector:
-    app.kubernetes.io/component: controller
-    app.kubernetes.io/name: prometheus-operator
 ---
 apiVersion: v1
 kind: Service
@@ -799,6 +788,26 @@ spec:
     targetPort: http
   selector:
     app.kubernetes.io/name: opentelemetry-target-allocator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-query
+  namespace: telemetry
+spec:
+  ports:
+  - name: http
+    port: 9090
+    targetPort: http
+  - appProtocol: kubernetes.io/h2c
+    name: grpc
+    port: 10901
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/name: thanos-query
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -932,6 +941,76 @@ spec:
         name: config
 ---
 apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-query
+  namespace: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-query
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos-query
+    spec:
+      containers:
+      - args:
+        - query
+        - --grpc-address=0.0.0.0:10901
+        - --http-address=0.0.0.0:9090
+        - --log.level=info
+        - --enable-auto-gomemlimit
+        - --auto-gomemlimit.ratio=0.7
+        - --query.promql-engine=thanos
+        - --enable-feature=promql-experimental-functions
+        - --endpoint=dnssrv+_grpc._tcp.prometheus-operated
+        image: quay.io/thanos/thanos:v0.40.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 4
+          httpGet:
+            path: /-/healthy
+            port: http
+          periodSeconds: 30
+        name: thanos-query
+        ports:
+        - containerPort: 10901
+          name: grpc
+        - containerPort: 9090
+          name: http
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /-/ready
+            port: http
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 512Mi
+          requests:
+            cpu: 20m
+            memory: 50Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: thanos-query
+---
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -1037,6 +1116,34 @@ spec:
     type: RollingUpdate
 ---
 apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/part-of: prometheus
+  name: prometheus-operated
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: prometheus
+      app.kubernetes.io/managed-by: prometheus-operator
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: web
+        protocol: TCP
+      - port: http
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+---
+apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   labels:
@@ -1056,6 +1163,9 @@ spec:
         protocol: TCP
       - port: otlp-http
         protocol: TCP
+      rules:
+        http:
+        - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -1070,11 +1180,23 @@ spec:
     matchLabels:
       app.kubernetes.io/name: prometheus
   ingress:
-  - fromEntities:
-    - cluster
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: collector
     toPorts:
     - ports:
       - port: web
+        protocol: TCP
+      rules:
+        http:
+        - method: POST
+          path: /api/v1/otlp/v1/metrics
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: thanos-query
+    toPorts:
+    - ports:
+      - port: grpc
         protocol: TCP
       rules:
         http:
@@ -1127,6 +1249,29 @@ spec:
       - port: http
         protocol: TCP
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-query
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-query
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+      rules:
+        http:
+        - {}
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1141,7 +1286,7 @@ spec:
     sectionName: telemetry-https
   rules:
   - backendRefs:
-    - name: prometheus-operated
+    - name: thanos-query
       port: 9090
     filters:
     - type: URLRewrite
@@ -1153,6 +1298,61 @@ spec:
     - path:
         type: PathPrefix
         value: /prometheus
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/part-of: prometheus
+  name: prometheus-operated
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+  - port: web
+  - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: prometheus
+      app.kubernetes.io/managed-by: prometheus-operator
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/part-of: prometheus
+  name: prometheus-operator
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: prometheus-operator
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-query
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-query
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
@@ -1210,6 +1410,8 @@ spec:
           requests:
             storage: 2Gi
         storageClassName: topolvm-provisioner
+  thanos:
+    image: quay.io/thanos/thanos:v0.40.1
   tsdb:
     outOfOrderTimeWindow: 30m
 ---

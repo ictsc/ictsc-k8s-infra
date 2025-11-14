@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-operator
+      app.kubernetes.io/component: controller
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: http
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: prometheus-operated
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/managed-by: prometheus-operator
+      app.kubernetes.io/instance: prometheus
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: web
+    - port: http

@@ -1,0 +1,6 @@
+labels:
+  - pairs:
+      app.kubernetes.io/instance: thanos
+
+resources:
+  - query.yaml

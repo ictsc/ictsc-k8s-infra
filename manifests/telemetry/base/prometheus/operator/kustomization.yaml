@@ -4,6 +4,7 @@ labels:
       app.kubernetes.io/component: controller
 
 resources:
+  - networkpolicy.yaml
+  - monitor.yaml
   - controller-rbac.yaml
   - controller-deploy.yaml
-  - controller-service.yaml

@@ -2,9 +2,6 @@ resources:
   - ../base
   - cluster-param.yaml
 
-configurations:
-  - ../crds/images_transformer_configurations.yaml
-
 components:
   - ../components
 
@@ -21,3 +18,6 @@ images:
   - name: prometheus
     newName: quay.io/prometheus/prometheus
     newTag: v3.7.3
+  - name: thanos
+    newName: quay.io/thanos/thanos
+    newTag: v0.40.1

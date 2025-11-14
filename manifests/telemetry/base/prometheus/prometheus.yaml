@@ -46,6 +46,10 @@ spec:
             matchLabels:
               app.kubernetes.io/name: prometheus
           topologyKey: kubernetes.io/hostname
+
+  thanos:
+    image: thanos:TO_BE_FILLED
+
   storage:
     volumeClaimTemplate:
       spec:
@@ -67,10 +71,23 @@ spec:
     matchLabels:
       app.kubernetes.io/name: prometheus
   ingress:
-    - fromEntities: [cluster]
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: collector
       toPorts:
         - ports:
             - port: web
+              protocol: TCP
+          rules:
+            http:
+              - method: POST
+                path: /api/v1/otlp/v1/metrics
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: thanos-query
+      toPorts:
+        - ports:
+            - port: grpc
               protocol: TCP
           rules:
             http: [{}]
