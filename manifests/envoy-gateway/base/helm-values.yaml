@@ -23,7 +23,7 @@ deployment:
     #TODO: Envoy Gateway に Issue を立ててトラックする
     image:
       repository: ghcr.io/tosuke-lab/envoy-gateway
-      tag: v1.5.4-ipv6 # See: tosuke-lab/gateway#1
+      tag: v1.6.0-ipv6 # See: tosuke-lab/gateway#1
     imagePullPolicy: Always
 
 config:
