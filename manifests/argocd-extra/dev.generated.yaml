@@ -29,15 +29,27 @@ spec:
         name: pause
         resources:
           limits:
-            cpu: 2m
-            memory: 10Mi
+            cpu: 1m
+            memory: 1Mi
           requests:
             cpu: 1m
             memory: 1Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /mnt/secrets-store
           name: secrets-store-inline
           readOnly: true
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccount: secret-pin
       volumes:
       - csi:
@@ -46,6 +58,27 @@ spec:
           volumeAttributes:
             secretProviderClass: sakuracloud-secret
         name: secrets-store-inline
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-metrics
+  namespace: argo-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argo-cd
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -79,6 +112,19 @@ spec:
   - backendRefs:
     - name: argo-cd-argocd-server
       port: 80
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: argocd-metrics
+  namespace: argo-system
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: argo-cd
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
