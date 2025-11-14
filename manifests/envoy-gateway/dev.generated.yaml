@@ -10,8 +10,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: envoy-gateway
   namespace: envoy-gateway-system
 ---
@@ -28,8 +28,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: eg-gateway-helm-infra-manager
   namespace: envoy-gateway-system
 rules:
@@ -86,8 +86,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: eg-gateway-helm-leader-election-role
   namespace: envoy-gateway-system
 rules:
@@ -283,8 +283,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: eg-gateway-helm-infra-manager
   namespace: envoy-gateway-system
 roleRef:
@@ -303,8 +303,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: eg-gateway-helm-leader-election-rolebinding
   namespace: envoy-gateway-system
 roleRef:
@@ -358,7 +358,7 @@ data:
       kubernetes:
         rateLimitDeployment:
           container:
-            image: docker.io/envoyproxy/ratelimit:e74a664a
+            image: docker.io/envoyproxy/ratelimit:99d85510
           patch:
             type: StrategicMerge
             value:
@@ -385,8 +385,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: envoy-gateway-config
   namespace: envoy-gateway-system
 ---
@@ -397,9 +397,9 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
+    app.kubernetes.io/version: v1.6.0
     control-plane: envoy-gateway
-    helm.sh/chart: gateway-helm-v1.5.4
+    helm.sh/chart: gateway-helm-1.6.0
   name: envoy-gateway
   namespace: envoy-gateway-system
 spec:
@@ -423,6 +423,7 @@ spec:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/name: gateway-helm
     control-plane: envoy-gateway
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -431,9 +432,9 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
+    app.kubernetes.io/version: v1.6.0
     control-plane: envoy-gateway
-    helm.sh/chart: gateway-helm-v1.5.4
+    helm.sh/chart: gateway-helm-1.6.0
   name: envoy-gateway
   namespace: envoy-gateway-system
 spec:
@@ -747,8 +748,8 @@ metadata:
     app.kubernetes.io/instance: eg
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: gateway-helm
-    app.kubernetes.io/version: v1.5.4
-    helm.sh/chart: gateway-helm-v1.5.4
+    app.kubernetes.io/version: v1.6.0
+    helm.sh/chart: gateway-helm-1.6.0
   name: envoy-gateway-topology-injector.envoy-gateway-system
 webhooks:
 - admissionReviewVersions:
