@@ -3,4 +3,6 @@ labels:
       app.kubernetes.io/instance: thanos
 
 resources:
+  - object-store-config.yaml
   - query.yaml
+  - compact.yaml
