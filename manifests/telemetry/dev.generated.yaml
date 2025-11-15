@@ -39,7 +39,25 @@ metadata:
   labels:
     app.kubernetes.io/instance: thanos
     app.kubernetes.io/part-of: prometheus
+  name: thanos-compact
+  namespace: telemetry
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
   name: thanos-query
+  namespace: telemetry
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-store
   namespace: telemetry
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -754,6 +772,23 @@ metadata:
   namespace: telemetry
 ---
 apiVersion: v1
+data:
+  bucket.yaml: |-
+    type: S3
+    prefix: thanos/dev
+    config:
+      bucket: ictsc-k8s-telemetry
+      endpoint: s3.isk01.sakurastorage.jp
+      region: jp-north-1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-object-store-config
+  namespace: telemetry
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -808,6 +843,26 @@ spec:
     targetPort: grpc
   selector:
     app.kubernetes.io/name: thanos-query
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-store
+  namespace: telemetry
+spec:
+  clusterIP: None
+  ports:
+  - name: http
+    port: 10902
+    targetPort: http
+  - name: grpc
+    port: 10901
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/name: thanos-store
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -967,8 +1022,10 @@ spec:
         - --enable-auto-gomemlimit
         - --auto-gomemlimit.ratio=0.7
         - --query.promql-engine=thanos
+        - --query.replica-label=prometheus_replica
         - --enable-feature=promql-experimental-functions
         - --endpoint=dnssrv+_grpc._tcp.prometheus-operated
+        - --endpoint=dnssrv+_grpc._tcp.thanos-store
         image: quay.io/thanos/thanos:v0.40.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1009,6 +1066,204 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: thanos-query
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-store
+  namespace: telemetry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-store
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos-store
+    spec:
+      containers:
+      - args:
+        - store
+        - --enable-auto-gomemlimit
+        - --http-address=0.0.0.0:10902
+        - --grpc-address=0.0.0.0:10901
+        - --no-cache-index-header
+        - --index-cache-size=250MB
+        - --objstore.config-file=/etc/thanos/bucket.yaml
+        env:
+        - name: AWS_REQUEST_CHECKSUM_CALCULATION
+          value: WHEN_REQUIRED
+        - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+          value: WHEN_REQUIRED
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
+        image: quay.io/thanos/thanos:v0.40.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 4
+          httpGet:
+            path: /-/healthy
+            port: http
+          periodSeconds: 30
+        name: thanos-store
+        ports:
+        - containerPort: 10902
+          name: http
+        - containerPort: 10901
+          name: grpc
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /-/ready
+            port: http
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 512Mi
+          requests:
+            cpu: 20m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /mnt/secrets-store
+          name: thanos-s3-secrets
+          readOnly: true
+        - mountPath: /etc/thanos
+          name: thanos-object-store-config
+          readOnly: true
+      securityContext:
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: thanos-store
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: telemetry-s3-credentials
+        name: thanos-s3-secrets
+      - configMap:
+          name: thanos-object-store-config
+        name: thanos-object-store-config
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-compact
+  namespace: telemetry
+spec:
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos-compact
+    spec:
+      backoffLimit: 0
+      completions: 1
+      parallelism: 1
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: thanos-compact
+        spec:
+          containers:
+          - args:
+            - compact
+            - --enable-auto-gomemlimit
+            - --http-address=0.0.0.0:10902
+            - --data-dir=/data
+            - --objstore.config-file=/etc/thanos/bucket.yaml
+            - --retention.resolution-raw=1y
+            - --retention.resolution-5m=1y
+            - --retention.resolution-1h=1y
+            - --deduplication.func=penalty
+            - --deduplication.replica-label=prometheus_replica
+            env:
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: WHEN_REQUIRED
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: WHEN_REQUIRED
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
+            image: quay.io/thanos/thanos:v0.40.1
+            imagePullPolicy: IfNotPresent
+            livenessProbe:
+              failureThreshold: 4
+              httpGet:
+                path: /-/healthy
+                port: http
+              periodSeconds: 30
+            name: thanos-compact
+            ports:
+            - containerPort: 10902
+              name: http
+            resources:
+              limits:
+                cpu: "1"
+                memory: 512Mi
+              requests:
+                cpu: 100m
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data
+              name: thanos-data
+            - mountPath: /mnt/secrets-store
+              name: thanos-s3-secrets
+              readOnly: true
+            - mountPath: /etc/thanos
+              name: thanos-object-store-config
+              readOnly: true
+          restartPolicy: Never
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: thanos-compact
+          volumes:
+          - ephemeral:
+              volumeClaimTemplate:
+                spec:
+                  accessModes:
+                  - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 1Gi
+                  storageClassName: topolvm-provisioner
+            name: thanos-data
+          - csi:
+              driver: secrets-store.csi.k8s.io
+              readOnly: true
+              volumeAttributes:
+                secretProviderClass: telemetry-s3-credentials
+            name: thanos-s3-secrets
+          - configMap:
+              name: thanos-object-store-config
+            name: thanos-object-store-config
+  schedule: 0 */6 * * *
+  startingDeadlineSeconds: 3600
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -1163,9 +1418,6 @@ spec:
         protocol: TCP
       - port: otlp-http
         protocol: TCP
-      rules:
-        http:
-        - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -1272,6 +1524,40 @@ spec:
         http:
         - {}
 ---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-store
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-store
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: thanos-query
+    toPorts:
+    - ports:
+      - port: grpc
+        protocol: TCP
+      rules:
+        http:
+        - {}
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1355,6 +1641,22 @@ spec:
       app.kubernetes.io/name: thanos-query
 ---
 apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
+  name: thanos-store
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-store
+---
+apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   labels:
@@ -1370,6 +1672,15 @@ spec:
           matchLabels:
             app.kubernetes.io/name: prometheus
         topologyKey: kubernetes.io/hostname
+  containers:
+  - env:
+    - name: AWS_REQUEST_CHECKSUM_CALCULATION
+      value: WHEN_REQUIRED
+    - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+      value: WHEN_REQUIRED
+    - name: AWS_SHARED_CREDENTIALS_FILE
+      value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
+    name: thanos-sidecar
   enableFeatures:
   - native-histograms
   - promql-experimental-functions
@@ -1401,6 +1712,9 @@ spec:
   probeSelector: {}
   replicas: 2
   retention: 24h
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 65534
   storage:
     volumeClaimTemplate:
       spec:
@@ -1412,8 +1726,26 @@ spec:
         storageClassName: topolvm-provisioner
   thanos:
     image: quay.io/thanos/thanos:v0.40.1
+    objectStorageConfigFile: /etc/thanos/bucket.yaml
+    volumeMounts:
+    - mountPath: /mnt/secrets-store
+      name: thanos-secrets-store
+      readOnly: true
+    - mountPath: /etc/thanos
+      name: thanos-object-store-config
+      readOnly: true
   tsdb:
     outOfOrderTimeWindow: 30m
+  volumes:
+  - csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: telemetry-s3-credentials
+    name: thanos-secrets-store
+  - configMap:
+      name: thanos-object-store-config
+    name: thanos-object-store-config
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -1487,3 +1819,15 @@ spec:
     matchLabels:
       component: apiserver
       provider: kubernetes
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: telemetry-s3-credentials
+  namespace: telemetry
+spec:
+  parameters:
+    secrets: |
+      - name: sakuracloud-s3-telemetry-credentials
+    vaultID: "113702555287"
+  provider: sakuracloud

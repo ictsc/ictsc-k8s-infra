@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thanos-object-store-config
+data:
+  bucket.yaml: |
+    type: S3
+    prefix: thanos/$env/
+    config:
+      bucket: ictsc-k8s-telemetry
+      endpoint: s3.isk01.sakurastorage.jp
+      region: jp-north-1

@@ -3,5 +3,6 @@ namespace: telemetry
 resources:
   - namespace.yaml
   - httproute.yaml
+  - telemetry-s3-credentials-secret.yaml
   - ./collector
   - ./prometheus
