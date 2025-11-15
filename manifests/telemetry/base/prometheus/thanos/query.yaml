@@ -36,8 +36,10 @@ spec:
             - --enable-auto-gomemlimit
             - --auto-gomemlimit.ratio=0.7
             - --query.promql-engine=thanos
+            - --query.replica-label=prometheus_replica
             - --enable-feature=promql-experimental-functions
             - --endpoint=dnssrv+_grpc._tcp.prometheus-operated
+            - --endpoint=dnssrv+_grpc._tcp.thanos-store
           ports:
             - name: grpc
               containerPort: 10901

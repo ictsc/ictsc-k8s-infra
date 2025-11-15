@@ -5,4 +5,5 @@ labels:
 resources:
   - object-store-config.yaml
   - query.yaml
+  - store.yaml
   - compact.yaml
