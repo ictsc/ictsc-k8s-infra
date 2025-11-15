@@ -46,9 +46,41 @@ spec:
             matchLabels:
               app.kubernetes.io/name: prometheus
           topologyKey: kubernetes.io/hostname
+  securityContext:
+    fsGroup: 2000
+    runAsUser: 65534
 
   thanos:
     image: thanos:TO_BE_FILLED
+    objectStorageConfigFile: /etc/thanos/bucket.yaml
+    volumeMounts:
+      - name: thanos-secrets-store
+        mountPath: /mnt/secrets-store
+        readOnly: true
+      - name: thanos-object-store-config
+        mountPath: /etc/thanos
+        readOnly: true
+
+  containers:
+    - name: thanos-sidecar
+      env:
+        - name: AWS_REQUEST_CHECKSUM_CALCULATION
+          value: WHEN_REQUIRED
+        - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+          value: WHEN_REQUIRED
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
+
+  volumes:
+    - name: thanos-secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: telemetry-s3-credentials
+    - name: thanos-object-store-config
+      configMap:
+        name: thanos-object-store-config
 
   storage:
     volumeClaimTemplate:

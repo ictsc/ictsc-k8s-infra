@@ -7,3 +7,5 @@ metadata:
 data:
   k8s-domain: k8s-dev
   cluster-name: ictsc-dev
+  vault-id: "113702555287"
+  thanos-prefix: thanos/dev
