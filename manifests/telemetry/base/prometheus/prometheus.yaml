@@ -49,6 +49,13 @@ spec:
   securityContext:
     fsGroup: 2000
     runAsUser: 65534
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: "1"
+    requests:
+      memory: 512Mi
+      cpu: 200m
 
   thanos:
     image: thanos:TO_BE_FILLED
