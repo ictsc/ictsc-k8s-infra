@@ -10,6 +10,7 @@ metadata:
 spec:
   schedule: "0 */6 * * *"
   startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
   jobTemplate:
     metadata:
       labels:
@@ -17,14 +18,14 @@ spec:
     spec:
       completions: 1
       parallelism: 1
-      backoffLimit: 0
+      backoffLimit: 3
       template:
         metadata:
           labels:
             app.kubernetes.io/name: thanos-compact
         spec:
           serviceAccountName: thanos-compact
-          restartPolicy: Never
+          restartPolicy: OnFailure
           securityContext:
             runAsNonRoot: true
             runAsUser: 65532
@@ -74,10 +75,10 @@ spec:
               resources:
                 limits:
                   cpu: "1"
-                  memory: 512Mi
+                  memory: 500Mi
                 requests:
                   cpu: 100m
-                  memory: 512Mi
+                  memory: 250Mi
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
@@ -92,7 +93,7 @@ spec:
                     accessModes: [ReadWriteOnce]
                     resources:
                       requests:
-                        storage: 1Gi
+                        storage: 5Gi
             - name: thanos-s3-secrets
               csi:
                 driver: secrets-store.csi.k8s.io
@@ -102,3 +103,34 @@ spec:
             - name: thanos-object-store-config
               configMap:
                 name: thanos-object-store-config
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: thanos-compact
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-compact
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: http
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: thanos-compact
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-compact
+  podMetricsEndpoints:
+    - port: http
+      interval: 5s

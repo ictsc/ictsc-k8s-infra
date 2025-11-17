@@ -70,7 +70,7 @@ spec:
             - name: GOMEMLIMIT
               valueFrom:
                 resourceFieldRef:
-                  resource: limits.memory
+                  resource: requests.memory
           ports:
             - name: healthz
               containerPort: 13133
@@ -80,10 +80,10 @@ spec:
               containerPort: 4318
           resources:
             limits:
-              memory: 512Mi
+              memory: 400Mi
               cpu: 100m
             requests:
-              memory: 128Mi
+              memory: 320Mi # 80% of limit
               cpu: 100m
           livenessProbe:
             httpGet:
