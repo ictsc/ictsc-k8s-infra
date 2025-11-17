@@ -1173,7 +1173,7 @@ spec:
       labels:
         app.kubernetes.io/name: thanos-compact
     spec:
-      backoffLimit: 0
+      backoffLimit: 3
       completions: 1
       parallelism: 1
       template:
@@ -1215,10 +1215,10 @@ spec:
             resources:
               limits:
                 cpu: "1"
-                memory: 512Mi
+                memory: 500Mi
               requests:
                 cpu: 100m
-                memory: 512Mi
+                memory: 450Mi
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -1234,7 +1234,7 @@ spec:
             - mountPath: /etc/thanos
               name: thanos-object-store-config
               readOnly: true
-          restartPolicy: Never
+          restartPolicy: OnFailure
           securityContext:
             runAsGroup: 65532
             runAsNonRoot: true
@@ -1250,7 +1250,7 @@ spec:
                   - ReadWriteOnce
                   resources:
                     requests:
-                      storage: 1Gi
+                      storage: 5Gi
                   storageClassName: topolvm-provisioner
             name: thanos-data
           - csi:
@@ -1264,6 +1264,7 @@ spec:
             name: thanos-object-store-config
   schedule: 0 */6 * * *
   startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -1318,7 +1319,7 @@ spec:
         - name: GOMEMLIMIT
           valueFrom:
             resourceFieldRef:
-              resource: limits.memory
+              resource: requests.memory
         image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1340,10 +1341,10 @@ spec:
         resources:
           limits:
             cpu: 100m
-            memory: 512Mi
+            memory: 400Mi
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 320Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1507,6 +1508,30 @@ metadata:
   labels:
     app.kubernetes.io/instance: thanos
     app.kubernetes.io/part-of: prometheus
+  name: thanos-compact
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-compact
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: http
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
   name: thanos-query
   namespace: telemetry
 spec:
@@ -1630,6 +1655,22 @@ metadata:
   labels:
     app.kubernetes.io/instance: thanos
     app.kubernetes.io/part-of: prometheus
+  name: thanos-compact
+  namespace: telemetry
+spec:
+  podMetricsEndpoints:
+  - interval: 5s
+    port: http
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-compact
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: thanos
+    app.kubernetes.io/part-of: prometheus
   name: thanos-query
   namespace: telemetry
 spec:
@@ -1711,6 +1752,13 @@ spec:
     - k8s.volume.name
   probeSelector: {}
   replicas: 2
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
   retention: 24h
   securityContext:
     fsGroup: 2000
