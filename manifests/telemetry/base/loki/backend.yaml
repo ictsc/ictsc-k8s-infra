@@ -31,6 +31,8 @@ spec:
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 300
       affinity:
         podAntiAffinity:
@@ -113,6 +115,11 @@ spec:
           volumeMounts:
             - mountPath: /rules
               name: sc-rules-volume
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
       volumes:
         - name: config
           configMap:

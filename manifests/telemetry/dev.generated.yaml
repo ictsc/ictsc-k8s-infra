@@ -1278,6 +1278,8 @@ spec:
         runAsGroup: 10001
         runAsNonRoot: true
         runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: loki-read
       terminationGracePeriodSeconds: 300
       volumes:
@@ -1712,6 +1714,12 @@ spec:
         image: docker.io/kiwigrid/k8s-sidecar:1.30.10
         imagePullPolicy: IfNotPresent
         name: loki-sc-rules
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /rules
           name: sc-rules-volume
@@ -1721,6 +1729,8 @@ spec:
         runAsGroup: 10001
         runAsNonRoot: true
         runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: loki-backend
       terminationGracePeriodSeconds: 300
       volumes:
@@ -1850,6 +1860,8 @@ spec:
         runAsGroup: 10001
         runAsNonRoot: true
         runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: loki-write
       terminationGracePeriodSeconds: 300
       volumes:
