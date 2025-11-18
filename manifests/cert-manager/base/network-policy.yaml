@@ -18,3 +18,24 @@ spec:
         - ports:
             - port: https
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager-metrics
+  labels:
+    app.kubernetes.io/instance: cert-manager
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: cert-manager
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: http-metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
