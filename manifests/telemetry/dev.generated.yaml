@@ -1658,6 +1658,7 @@ metadata:
   name: thanos-compact
   namespace: telemetry
 spec:
+  jobLabel: app.kubernetes.io/name
   podMetricsEndpoints:
   - interval: 5s
     port: http
