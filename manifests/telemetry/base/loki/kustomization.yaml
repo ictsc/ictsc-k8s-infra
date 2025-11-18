@@ -1,0 +1,27 @@
+labels:
+  - pairs:
+      app.kubernetes.io/instance: loki
+    includeSelectors: true
+    includeTemplates: true
+
+configMapGenerator:
+  - name: loki
+    options:
+      labels:
+        app.kubernetes.io/name: loki
+    files:
+      - config.yaml=config.yaml
+  - name: loki-runtime
+    options:
+      disableNameSuffixHash: true
+      labels:
+        app.kubernetes.io/name: loki-runtime
+    literals:
+      - runtime-config.yaml={}
+
+resources:
+  - rbac.yaml
+  - memberlist.yaml
+  - backend.yaml
+  - write.yaml
+  - read.yaml

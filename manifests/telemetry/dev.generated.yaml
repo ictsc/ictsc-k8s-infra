@@ -14,6 +14,30 @@ metadata:
   namespace: telemetry
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-backend
+  namespace: telemetry
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-read
+  namespace: telemetry
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-write
+  namespace: telemetry
+---
+apiVersion: v1
 automountServiceAccountToken: false
 kind: ServiceAccount
 metadata:
@@ -88,6 +112,22 @@ rules:
   - update
   - patch
   - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-ruler
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -400,6 +440,21 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
+    app.kubernetes.io/instance: loki
+  name: loki-ruler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: loki-ruler
+subjects:
+- kind: ServiceAccount
+  name: loki-backend
+  namespace: telemetry
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
     app.kubernetes.io/component: controller
     app.kubernetes.io/name: prometheus-operator
     app.kubernetes.io/part-of: prometheus
@@ -500,6 +555,8 @@ data:
         endpoint: http://prometheus-prometheus-0.prometheus-operated.telemetry.svc.cluster.local:9090/api/v1/otlp
       otlphttp/prometheus1:
         endpoint: http://prometheus-prometheus-1.prometheus-operated.telemetry.svc.cluster.local:9090/api/v1/otlp
+      otlphttp/loki:
+        endpoint: http://loki-write:3100/otlp
 
     extensions:
       health_check:
@@ -684,6 +741,13 @@ data:
             - k8sattributes
             - batch
           exporters: [forward]
+        logs/otlp:
+          receivers: [otlp]
+          processors:
+            - memory_limiter
+            - k8sattributes
+            - batch
+          exporters: [forward]
 
         metrics/prometheus:
           receivers: [prometheus]
@@ -718,6 +782,10 @@ data:
           exporters:
             - otlphttp/prometheus0
             - otlphttp/prometheus1
+        logs/export:
+          receivers: [forward]
+          processors: [resource]
+          exporters: [otlphttp/loki]
 
       telemetry:
         resource:
@@ -745,7 +813,118 @@ metadata:
   labels:
     app.kubernetes.io/component: collector
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-ch228md9km
+  name: collector-config-5td69gth78
+  namespace: telemetry
+---
+apiVersion: v1
+data:
+  config.yaml: |-
+    auth_enabled: false
+    server:
+      grpc_listen_port: 9095
+      http_listen_port: 3100
+      http_server_read_timeout: 600s
+      http_server_write_timeout: 600s
+    runtime_config:
+      file: /etc/loki/runtime-config/runtime-config.yaml
+    common:
+      path_prefix: /var/loki
+      replication_factor: 2
+      compactor_grpc_address: loki-backend:9095
+      ring:
+        kvstore:
+          store: memberlist
+        instance_enable_ipv6: true
+      storage:
+        object_store:
+          storage_prefix: loki-dev
+          s3:
+            bucket_name: ictsc-k8s-telemetry
+            endpoint: s3.isk01.sakurastorage.jp
+            region: jp-north-1
+    storage_config:
+      use_thanos_objstore: true
+      hedging:
+        at: 250ms
+        max_per_second: 20
+        up_to: 3
+    schema_config:
+      configs:
+      - from: 2024-04-01
+        store: tsdb
+        schema: v13
+        object_store: s3
+        index:
+          period: 24h
+          prefix: index_
+    memberlist:
+      bind_addr: ["::"]
+      join_members:
+      - loki-memberlist
+    limits_config:
+      max_cache_freshness_per_query: 10m
+      query_timeout: 300s
+      reject_old_samples: true
+      reject_old_samples_max_age: 168h
+      split_queries_by_interval: 15m
+      volume_enabled: true
+      allow_structured_metadata: true
+    # Backend
+    index_gateway:
+      mode: simple
+      ring:
+        instance_enable_ipv6: true
+    query_scheduler:
+      scheduler_ring:
+        instance_enable_ipv6: true
+    ruler:
+      wal:
+        dir: /var/loki/ruler-wal
+      ring:
+        instance_enable_ipv6: true
+    ruler_storage:
+      backend: local
+      local:
+        directory: /rules
+    compactor:
+      compactor_ring:
+        instance_enable_ipv6: true
+    # Read
+    frontend:
+      instance_enable_ipv6: true
+    querier:
+      max_concurrent: 4
+    query_range:
+      align_queries_with_step: true
+    # Write
+    ingester:
+      chunk_encoding: lz4
+      lifecycler:
+        enable_inet6: true
+    pattern_ingester:
+      enabled: true
+      lifecycler:
+        enable_inet6: true
+    distributor:
+      ring:
+        instance_enable_ipv6: true
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki
+  name: loki-6mhct52gh9
+  namespace: telemetry
+---
+apiVersion: v1
+data:
+  runtime-config.yaml: '{}'
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-runtime
+  name: loki-runtime
   namespace: telemetry
 ---
 apiVersion: v1
@@ -787,6 +966,147 @@ metadata:
     app.kubernetes.io/part-of: prometheus
   name: thanos-object-store-config
   namespace: telemetry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-backend
+  name: loki-backend
+  namespace: telemetry
+spec:
+  ports:
+  - name: grpc
+    port: 9095
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-backend
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-backend
+  name: loki-backend-headless
+  namespace: telemetry
+spec:
+  clusterIP: None
+  ports:
+  - name: grpc
+    port: 9095
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-backend
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-memberlist
+  namespace: telemetry
+spec:
+  clusterIP: None
+  ports:
+  - name: tcp
+    port: 7946
+    protocol: TCP
+    targetPort: http-memberlist
+  selector:
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/part-of: memberlist
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-read
+  namespace: telemetry
+spec:
+  ports:
+  - appProtocol: kubernetes.io/h2c
+    name: http
+    port: 3100
+    protocol: TCP
+    targetPort: http-metrics
+  - appProtocol: kubernetes.io/h2c
+    name: grpc
+    port: 9095
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/component: read
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-read
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.cilium.io/lb-l7: enabled
+  labels:
+    app.kubernetes.io/component: write
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-write
+  name: loki-write
+  namespace: telemetry
+spec:
+  ports:
+  - appProtocol: kubernetes.io/h2c
+    name: http
+    port: 3100
+    protocol: TCP
+    targetPort: http-metrics
+  - appProtocol: kubernetes.io/h2c
+    name: grpc
+    port: 9095
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/component: write
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-write
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: write
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-write
+  name: loki-write-headless
+  namespace: telemetry
+spec:
+  clusterIP: None
+  ports:
+  - appProtocol: kubernetes.io/h2c
+    name: http
+    port: 3100
+    protocol: TCP
+    targetPort: http-metrics
+  - appProtocol: kubernetes.io/h2c
+    name: grpc
+    port: 9095
+    protocol: TCP
+    targetPort: grpc
+  selector:
+    app.kubernetes.io/component: write
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-write
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -863,6 +1183,134 @@ spec:
     targetPort: grpc
   selector:
     app.kubernetes.io/name: thanos-store
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: read
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-read
+    app.kubernetes.io/part-of: memberlist
+  name: loki-read
+  namespace: telemetry
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: read
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-read
+      app.kubernetes.io/part-of: memberlist
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: read
+        app.kubernetes.io/instance: loki
+        app.kubernetes.io/name: loki-read
+        app.kubernetes.io/part-of: memberlist
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: read
+                app.kubernetes.io/instance: loki
+                app.kubernetes.io/name: loki-read
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.file=/etc/loki/config/config.yaml
+        - -target=read
+        env:
+        - name: AWS_REQUEST_CHECKSUM_CALCULATION
+          value: WHEN_REQUIRED
+        - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+          value: WHEN_REQUIRED
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+        image: docker.io/grafana/loki:3.5.7
+        imagePullPolicy: IfNotPresent
+        name: loki
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+          protocol: TCP
+        - containerPort: 9095
+          name: grpc
+          protocol: TCP
+        - containerPort: 7946
+          name: http-memberlist
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/loki/config
+          name: config
+        - mountPath: /etc/loki/runtime-config
+          name: runtime-config
+        - mountPath: /var/run/s3-secrets
+          name: s3-secrets
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/loki
+          name: data
+      resources: {}
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: loki-read
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - configMap:
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: loki-6mhct52gh9
+        name: config
+      - configMap:
+          name: loki-runtime
+        name: runtime-config
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: telemetry-s3-credentials
+        name: s3-secrets
+      - emptyDir:
+          medium: Memory
+        name: tmp
+      - ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+              - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 512Mi
+              storageClassName: topolvm-provisioner
+        name: data
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1159,6 +1607,295 @@ spec:
           name: thanos-object-store-config
         name: thanos-object-store-config
 ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-backend
+  name: loki-backend
+  namespace: telemetry
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-backend
+  serviceName: loki-backend-headless
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: loki
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/instance: loki
+        app.kubernetes.io/name: loki-backend
+        app.kubernetes.io/part-of: memberlist
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: backend
+                app.kubernetes.io/instance: loki
+                app.kubernetes.io/name: loki-backend
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.file=/etc/loki/config/config.yaml
+        - -target=backend
+        - -legacy-read-mode=false
+        env:
+        - name: AWS_REQUEST_CHECKSUM_CALCULATION
+          value: WHEN_REQUIRED
+        - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+          value: WHEN_REQUIRED
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+        image: docker.io/grafana/loki:3.5.7
+        imagePullPolicy: IfNotPresent
+        name: loki
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+          protocol: TCP
+        - containerPort: 9095
+          name: grpc
+          protocol: TCP
+        - containerPort: 7946
+          name: http-memberlist
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/loki/config
+          name: config
+        - mountPath: /etc/loki/runtime-config
+          name: runtime-config
+        - mountPath: /var/run/s3-secrets
+          name: s3-secrets
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/loki
+          name: data
+        - mountPath: /rules
+          name: sc-rules-volume
+      - env:
+        - name: METHOD
+          value: WATCH
+        - name: LABEL
+          value: loki-rule
+        - name: FOLDER
+          value: /rules
+        - name: RESOURCE
+          value: configmap
+        - name: WATCH_SERVER_TIMEOUT
+          value: "60"
+        - name: WATCH_CLIENT_TIMEOUT
+          value: "60"
+        - name: LOG_LEVEL
+          value: info
+        image: docker.io/kiwigrid/k8s-sidecar:1.30.10
+        imagePullPolicy: IfNotPresent
+        name: loki-sc-rules
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /rules
+          name: sc-rules-volume
+      resources: {}
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: loki-backend
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - configMap:
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: loki-6mhct52gh9
+        name: config
+      - configMap:
+          name: loki-runtime
+        name: runtime-config
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: telemetry-s3-credentials
+        name: s3-secrets
+      - emptyDir: {}
+        name: sc-rules-volume
+      - emptyDir:
+          medium: Memory
+        name: tmp
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/instance: loki
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+      storageClassName: topolvm-provisioner
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: write
+    app.kubernetes.io/instance: loki
+    app.kubernetes.io/name: loki-write
+    app.kubernetes.io/part-of: memberlist
+  name: loki-write
+  namespace: telemetry
+spec:
+  podManagementPolicy: Parallel
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: write
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-write
+      app.kubernetes.io/part-of: memberlist
+  serviceName: loki-write-headless
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: write
+        app.kubernetes.io/instance: loki
+        app.kubernetes.io/name: loki-write
+        app.kubernetes.io/part-of: memberlist
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: write
+                app.kubernetes.io/instance: loki
+                app.kubernetes.io/name: loki-write
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - args:
+        - -config.file=/etc/loki/config/config.yaml
+        - -target=write
+        env:
+        - name: AWS_REQUEST_CHECKSUM_CALCULATION
+          value: WHEN_REQUIRED
+        - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+          value: WHEN_REQUIRED
+        - name: AWS_SHARED_CREDENTIALS_FILE
+          value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+        image: docker.io/grafana/loki:3.5.7
+        imagePullPolicy: IfNotPresent
+        name: loki
+        ports:
+        - containerPort: 3100
+          name: http-metrics
+          protocol: TCP
+        - containerPort: 9095
+          name: grpc
+          protocol: TCP
+        - containerPort: 7946
+          name: http-memberlist
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http-metrics
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/loki/config
+          name: config
+        - mountPath: /etc/loki/runtime-config
+          name: runtime-config
+        - mountPath: /var/run/s3-secrets
+          name: s3-secrets
+        - mountPath: /var/loki
+          name: data
+      resources: {}
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: loki-write
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - configMap:
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: loki-6mhct52gh9
+        name: config
+      - configMap:
+          name: loki-runtime
+        name: runtime-config
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: telemetry-s3-credentials
+        name: s3-secrets
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/instance: loki
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+      storageClassName: topolvm-provisioner
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -1366,7 +2103,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-ch228md9km
+          name: collector-config-5td69gth78
         name: config
   updateStrategy:
     rollingUpdate:
@@ -1422,6 +2159,143 @@ spec:
         protocol: TCP
       - port: otlp-http
         protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-backend
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-backend
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/instance: loki
+    toPorts:
+    - ports:
+      - port: grpc
+        protocol: TCP
+      rules:
+        http:
+        - {}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-memberlist
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/part-of: memberlist
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/instance: loki
+        app.kubernetes.io/part-of: memberlist
+    toPorts:
+    - ports:
+      - port: http-memberlist
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-read
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: read
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-read
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: http-metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /loki/api/v1/query(\?.+)?
+        - method: GET
+          path: /loki/api/v1/query_range(\?.+)?
+        - method: GET
+          path: /loki/api/v1/labels(\?.+)?
+        - method: GET
+          path: /loki/api/v1/label/.+/values(\?.+)?
+        - method: GET
+          path: /loki/api/v1/series(\?.+)?
+        - method: POST
+          path: /loki/api/v1/series
+        - method: GET
+          path: /loki/api/v1/index/stats(\?.+)?
+        - method: GET
+          path: /loki/api/v1/index/volume(\?.+)?
+        - method: GET
+          path: /loki/api/v1/index/volume_range(\?.+)?
+        - method: GET
+          path: /loki/api/v1/patterns(\?.+)?
+        - method: GET
+          path: /loki/api/v1/tail(\?.+)?
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/instance: loki
+    toPorts:
+    - ports:
+      - port: grpc
+        protocol: TCP
+      rules:
+        http:
+        - {}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki-write
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: write
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki-write
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: collector
+    toPorts:
+    - ports:
+      - port: http-metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: POST
+          path: /otlp/v1/logs
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/instance: loki
+    toPorts:
+    - ports:
+      - port: grpc
+        protocol: TCP
+      rules:
+        http:
+        - {}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -1612,6 +2486,13 @@ spec:
     - path:
         type: PathPrefix
         value: /prometheus
+  - backendRefs:
+    - name: loki-read
+      port: 3100
+    matches:
+    - path:
+        type: PathPrefix
+        value: /loki/api/v1
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

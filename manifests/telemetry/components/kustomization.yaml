@@ -48,3 +48,13 @@ replacements:
           name: thanos-object-store-config
         fieldPaths:
           - data.bucket\.yaml.prefix
+  - source:
+      kind: ConfigMap
+      name: cluster-param
+      fieldPath: data.loki-prefix
+    targets:
+      - select:
+          kind: ConfigMap
+          labelSelector: app.kubernetes.io/name=loki
+        fieldPaths:
+          - data.config\.yaml.common.storage.object_store.storage_prefix

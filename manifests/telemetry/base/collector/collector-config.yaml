@@ -6,6 +6,8 @@ exporters:
     endpoint: http://prometheus-prometheus-0.prometheus-operated.telemetry.svc.cluster.local:9090/api/v1/otlp
   otlphttp/prometheus1:
     endpoint: http://prometheus-prometheus-1.prometheus-operated.telemetry.svc.cluster.local:9090/api/v1/otlp
+  otlphttp/loki:
+    endpoint: http://loki-write:3100/otlp
 
 extensions:
   health_check:
@@ -190,6 +192,13 @@ service:
         - k8sattributes
         - batch
       exporters: [forward]
+    logs/otlp:
+      receivers: [otlp]
+      processors:
+        - memory_limiter
+        - k8sattributes
+        - batch
+      exporters: [forward]
 
     metrics/prometheus:
       receivers: [prometheus]
@@ -224,6 +233,10 @@ service:
       exporters:
         - otlphttp/prometheus0
         - otlphttp/prometheus1
+    logs/export:
+      receivers: [forward]
+      processors: [resource]
+      exporters: [otlphttp/loki]
 
   telemetry:
     resource:
