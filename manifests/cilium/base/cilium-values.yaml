@@ -34,6 +34,9 @@ loadBalancer:
 tunnelProtocol: geneve
 underlayProtocol: ipv6
 
+bandwidthManager:
+  enabled: true
+
 prometheus:
   enabled: true
 
@@ -51,12 +54,12 @@ hubble:
     enableOpenMetrics: true
     enabled:
       - dns
-      - drop
+      - drop:sourceContext=workload;destinationContext=workload
       - tcp
       - flow
       - port-distribution
       - icmp
-      - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+      - httpV2:exemplars=true;sourceContext=workload;destinationContext=workload
   tls:
     auto:
       method: cronJob
