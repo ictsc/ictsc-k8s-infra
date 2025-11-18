@@ -3,6 +3,7 @@ storageClasses:
     storageClass:
       fsType: ext4
       allowVolumeExpansion: true
+      volumeBindingMode: WaitForFirstConsumer
 
 lvmd:
   deviceClasses:
