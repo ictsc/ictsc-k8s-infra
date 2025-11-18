@@ -26,3 +26,24 @@ spec:
         - ports:
             - port: webhook
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-proxy-metrics
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: envoy-gateway
+      app.kubernetes.io/component: proxy
+      app.kubernetes.io/name: envoy
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /stats/prometheus
