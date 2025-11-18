@@ -24,8 +24,8 @@ spec:
           labels:
             app.kubernetes.io/name: thanos-compact
           annotations:
-            kubernetes.io/egress-bandwidth: "25M"
-            kubernetes.io/ingress-bandwidth: "25M"
+            kubernetes.io/egress-bandwidth: 25M
+            kubernetes.io/ingress-bandwidth: 25M
         spec:
           serviceAccountName: thanos-compact
           restartPolicy: OnFailure
