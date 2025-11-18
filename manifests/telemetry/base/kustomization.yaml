@@ -6,3 +6,4 @@ resources:
   - telemetry-s3-credentials-secret.yaml
   - ./collector
   - ./prometheus
+  - ./loki

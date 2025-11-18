@@ -11,9 +11,9 @@ spec:
     - telemetry.$k8s-domain.ictsc.net
   rules:
     - matches:
-      - path:
-          type: PathPrefix
-          value: /prometheus
+        - path:
+            type: PathPrefix
+            value: /prometheus
       filters:
         - type: URLRewrite
           urlRewrite:
@@ -23,3 +23,10 @@ spec:
       backendRefs:
         - name: thanos-query
           port: 9090
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /loki/api/v1
+      backendRefs:
+        - name: loki-read
+          port: 3100

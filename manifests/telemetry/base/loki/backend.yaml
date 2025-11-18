@@ -1,0 +1,201 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki-backend
+  labels:
+    app.kubernetes.io/name: loki-backend
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  podManagementPolicy: Parallel
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+  serviceName: loki-backend-headless
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: loki-backend
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: loki-backend
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: memberlist
+      annotations:
+        kubectl.kubernetes.io/default-container: loki
+    spec:
+      serviceAccountName: loki-backend
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      terminationGracePeriodSeconds: 300
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: loki-backend
+                  app.kubernetes.io/component: backend
+              topologyKey: kubernetes.io/hostname
+      resources: {}
+      containers:
+        - name: loki
+          image: loki:TO_BE_FILLED
+          imagePullPolicy: IfNotPresent
+          args:
+            - -config.file=/etc/loki/config/config.yaml
+            - -target=backend
+            - -legacy-read-mode=false
+          env:
+            - name: AWS_REQUEST_CHECKSUM_CALCULATION
+              value: WHEN_REQUIRED
+            - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+              value: WHEN_REQUIRED
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+          volumeMounts:
+            - mountPath: /etc/loki/config
+              name: config
+            - mountPath: /etc/loki/runtime-config
+              name: runtime-config
+            - mountPath: /var/run/s3-secrets
+              name: s3-secrets
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /var/loki
+              name: data
+            - mountPath: /rules
+              name: sc-rules-volume
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http-metrics
+              containerPort: 3100
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
+              protocol: TCP
+            - name: http-memberlist
+              containerPort: 7946
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http-metrics
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+        - name: loki-sc-rules
+          image: k8s-sidecar:TO_BE_FILLED
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: METHOD
+              value: WATCH
+            - name: LABEL
+              value: loki-rule
+            - name: FOLDER
+              value: /rules
+            - name: RESOURCE
+              value: configmap
+            - name: WATCH_SERVER_TIMEOUT
+              value: "60"
+            - name: WATCH_CLIENT_TIMEOUT
+              value: "60"
+            - name: LOG_LEVEL
+              value: info
+          volumeMounts:
+            - mountPath: /rules
+              name: sc-rules-volume
+      volumes:
+        - name: config
+          configMap:
+            name: loki
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: runtime-config
+          configMap:
+            name: loki-runtime
+        - name: s3-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: telemetry-s3-credentials
+        - name: sc-rules-volume
+          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: topolvm-provisioner
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-backend
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/name: loki-backend
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: loki
+      toPorts:
+        - ports:
+            - port: grpc
+              protocol: TCP
+          rules:
+            http: [{}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-backend
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/name: loki-backend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: loki-backend
+  ports:
+    - name: grpc
+      port: 9095
+      protocol: TCP
+      targetPort: grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-backend-headless
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/name: loki-backend
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: loki-backend
+  ports:
+    - name: grpc
+      port: 9095
+      protocol: TCP
+      targetPort: grpc
