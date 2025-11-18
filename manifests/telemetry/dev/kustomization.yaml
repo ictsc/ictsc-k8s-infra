@@ -26,4 +26,4 @@ images:
     newTag: 3.5.7
   - name: k8s-sidecar
     newName: docker.io/kiwigrid/k8s-sidecar
-    newTag: 1.30.10
+    newTag: 1.30.11
