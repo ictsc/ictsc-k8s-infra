@@ -226,9 +226,10 @@ spec:
     toPorts:
     - ports:
       - port: dns
-        protocol: UDP
-      - port: dns-tcp
-        protocol: TCP
+        protocol: ANY
+      rules:
+        dns:
+        - matchPattern: '*'
   enableDefaultDeny:
     egress: false
   endpointSelector: {}
@@ -254,9 +255,7 @@ spec:
     toPorts:
     - ports:
       - port: dns
-        protocol: UDP
-      - port: dns-tcp
-        protocol: TCP
+        protocol: ANY
     - ports:
       - port: metrics
         protocol: TCP
