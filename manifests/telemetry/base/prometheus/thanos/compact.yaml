@@ -23,6 +23,9 @@ spec:
         metadata:
           labels:
             app.kubernetes.io/name: thanos-compact
+          annotations:
+            kubernetes.io/egress-bandwidth: 25M
+            kubernetes.io/ingress-bandwidth: 25M
         spec:
           serviceAccountName: thanos-compact
           restartPolicy: OnFailure
@@ -131,6 +134,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: thanos-compact
+  jobLabel: app.kubernetes.io/name
   podMetricsEndpoints:
     - port: http
       interval: 5s
