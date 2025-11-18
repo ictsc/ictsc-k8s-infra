@@ -1178,6 +1178,9 @@ spec:
       parallelism: 1
       template:
         metadata:
+          annotations:
+            kubernetes.io/egress-bandwidth: 25M
+            kubernetes.io/ingress-bandwidth: 25M
           labels:
             app.kubernetes.io/name: thanos-compact
         spec:
