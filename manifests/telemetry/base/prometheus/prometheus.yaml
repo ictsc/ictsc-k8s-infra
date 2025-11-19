@@ -36,6 +36,9 @@ spec:
     - native-histograms
     - promql-experimental-functions
   retention: 24h
+  additionalArgs:
+    - name: auto-gomemlimit.ratio
+      value: "0.6"
 
   image: prometheus:TO_BE_FILLED
   replicas: 2
@@ -51,10 +54,10 @@ spec:
     runAsUser: 65534
   resources:
     limits:
-      memory: 1Gi
+      memory: 512Mi
       cpu: "1"
     requests:
-      memory: 512Mi
+      memory: 256Mi
       cpu: 200m
 
   thanos:
