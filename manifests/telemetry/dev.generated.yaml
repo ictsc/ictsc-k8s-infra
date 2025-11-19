@@ -2591,6 +2591,9 @@ metadata:
   name: prometheus
   namespace: telemetry
 spec:
+  additionalArgs:
+  - name: auto-gomemlimit.ratio
+    value: "0.6"
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -2640,10 +2643,10 @@ spec:
   resources:
     limits:
       cpu: "1"
-      memory: 1Gi
+      memory: 512Mi
     requests:
       cpu: 200m
-      memory: 512Mi
+      memory: 256Mi
   retention: 24h
   securityContext:
     fsGroup: 2000
