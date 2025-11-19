@@ -1813,6 +1813,8 @@ spec:
         volumeMounts:
         - mountPath: /rules
           name: sc-rules-volume
+        - mountPath: /tmp
+          name: tmp
       resources: {}
       securityContext:
         fsGroup: 10001
@@ -2424,6 +2426,38 @@ kind: CiliumNetworkPolicy
 metadata:
   labels:
     app.kubernetes.io/instance: loki
+  name: loki-metrics
+  namespace: telemetry
+spec:
+  endpointSelector:
+    matchExpressions:
+    - key: app.kubernetes.io/instance
+      operator: In
+      values:
+      - loki
+    - key: app.kubernetes.io/component
+      operator: In
+      values:
+      - backend
+      - read
+      - write
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: http-metrics
+        protocol: TCP
+      rules:
+        http:
+        - method: GET
+          path: /metrics
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
   name: loki-read
   namespace: telemetry
 spec:
@@ -2461,6 +2495,8 @@ spec:
           path: /loki/api/v1/index/volume_range(\?.+)?
         - method: GET
           path: /loki/api/v1/patterns(\?.+)?
+        - method: GET
+          path: /loki/api/v1/detected_fields(\?.+)?
         - method: GET
           path: /loki/api/v1/tail(\?.+)?
   - fromEndpoints:
@@ -2706,6 +2742,30 @@ spec:
     - path:
         type: PathPrefix
         value: /loki/api/v1
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: loki
+  name: loki
+  namespace: telemetry
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - port: http-metrics
+  selector:
+    matchExpressions:
+    - key: app.kubernetes.io/instance
+      operator: In
+      values:
+      - loki
+    - key: app.kubernetes.io/component
+      operator: In
+      values:
+      - backend
+      - read
+      - write
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

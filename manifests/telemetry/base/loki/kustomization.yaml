@@ -21,6 +21,7 @@ configMapGenerator:
 
 resources:
   - rbac.yaml
+  - monitor.yaml
   - memberlist.yaml
   - backend.yaml
   - write.yaml
