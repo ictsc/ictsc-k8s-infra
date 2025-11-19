@@ -1,0 +1,49 @@
+exporters:
+  otlp/local:
+    endpoint: otlp:14317
+    tls:
+      insecure: true
+    sending_queue:
+      storage: file_storage
+
+extensions:
+  health_check:
+    endpoint: "[${env:POD_IP}]:13133"
+  file_storage:
+    directory: /var/lib/otelcol/file_storage
+    create_directory: true
+    timeout: 30s
+
+processors:
+  batch: {}
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 80
+    spike_limit_percentage: 25
+
+receivers:
+  filelog:
+    include:
+      - /var/log/pods/*/*/*.log*
+    exclude:
+      - /var/log/pods/telemetry_collector-*/*/*.log*
+    start_at: beginning
+    storage: file_storage
+    include_file_path: true
+    include_file_name: false
+    compression: auto
+    operators:
+      - type: container
+
+service:
+  extensions:
+    - health_check
+    - file_storage
+
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors:
+        - memory_limiter
+        - batch
+      exporters: [otlp/local]

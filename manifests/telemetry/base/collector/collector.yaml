@@ -29,12 +29,6 @@ spec:
         - name: otelcol
           image: opentelemetry-collector-k8s:TO_BE_FILLED
           imagePullPolicy: IfNotPresent
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
           args:
             - --config
             - /etc/otelcol/config.yaml
@@ -71,6 +65,10 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: requests.memory
+          volumeMounts:
+            - mountPath: /etc/otelcol
+              name: config
+              readOnly: true
           ports:
             - name: healthz
               containerPort: 13133
@@ -78,6 +76,14 @@ spec:
               containerPort: 4317
             - name: otlp-http
               containerPort: 4318
+            - name: otlp-local-grpc
+              containerPort: 14317
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           resources:
             limits:
               memory: 400Mi
@@ -93,10 +99,52 @@ spec:
             httpGet:
               path: /
               port: healthz
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otelcol
       volumes:
         - name: config
           configMap:
             name: collector-config
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: collector
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: collector
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: otlp-grpc
+              protocol: TCP
+            - port: otlp-http
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: host-collector
+      toPorts:
+        - ports:
+            - port: otlp-local-grpc
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otlp
+spec:
+  selector:
+    app.kubernetes.io/name: collector
+  internalTrafficPolicy: Local
+  ports:
+    - name: grpc
+      appProtocol: kubernetes.io/h2c
+      port: 4317
+      targetPort: otlp-grpc
+    - name: http
+      port: 4318
+      targetPort: otlp-http
+    - name: grpc-local
+      port: 14317
+      targetPort: otlp-local-grpc
+      protocol: TCP
