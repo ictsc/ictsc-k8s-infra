@@ -2751,7 +2751,7 @@ metadata:
   name: loki
   namespace: telemetry
 spec:
-  jobLabel: app.kubernetes.io/name
+  jobLabel: app.kubernetes.io/instance
   podMetricsEndpoints:
   - port: http-metrics
   selector:

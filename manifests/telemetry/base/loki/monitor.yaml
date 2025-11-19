@@ -14,7 +14,7 @@ spec:
           - backend
           - read
           - write
-  jobLabel: app.kubernetes.io/name
+  jobLabel: app.kubernetes.io/instance
   podMetricsEndpoints:
     - port: http-metrics
 ---
