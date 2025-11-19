@@ -57,7 +57,6 @@ hubble:
       - drop:sourceContext=workload;destinationContext=workload
       - tcp
       - flow
-      - port-distribution
       - icmp
       - httpV2:exemplars=true;sourceContext=workload;destinationContext=workload
   tls:

@@ -843,7 +843,7 @@ data:
   hubble-disable-tls: "false"
   hubble-listen-address: :4244
   hubble-metrics: dns drop:sourceContext=workload;destinationContext=workload tcp
-    flow port-distribution icmp httpV2:exemplars=true;sourceContext=workload;destinationContext=workload
+    flow icmp httpV2:exemplars=true;sourceContext=workload;destinationContext=workload
   hubble-metrics-server: :9965
   hubble-metrics-server-enable-tls: "false"
   hubble-network-policy-correlation-enabled: "true"
