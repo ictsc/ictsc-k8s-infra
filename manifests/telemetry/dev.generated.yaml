@@ -1711,7 +1711,7 @@ spec:
           value: "60"
         - name: LOG_LEVEL
           value: info
-        image: docker.io/kiwigrid/k8s-sidecar:1.30.10
+        image: docker.io/kiwigrid/k8s-sidecar:2.1.1
         imagePullPolicy: IfNotPresent
         name: loki-sc-rules
         securityContext:
