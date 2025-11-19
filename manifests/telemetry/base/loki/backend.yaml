@@ -115,6 +115,8 @@ spec:
           volumeMounts:
             - mountPath: /rules
               name: sc-rules-volume
+            - mountPath: /tmp
+              name: tmp
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

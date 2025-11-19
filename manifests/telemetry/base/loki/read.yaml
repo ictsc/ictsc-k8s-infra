@@ -158,6 +158,8 @@ spec:
               - method: GET
                 path: /loki/api/v1/patterns(\?.+)?
               - method: GET
+                path: /loki/api/v1/detected_fields(\?.+)?
+              - method: GET
                 path: /loki/api/v1/tail(\?.+)?
     - fromEndpoints:
         - matchLabels:

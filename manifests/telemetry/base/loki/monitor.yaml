@@ -1,0 +1,46 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: loki
+spec:
+  selector:
+    matchExpressions:
+      - key: app.kubernetes.io/instance
+        operator: In
+        values: [loki]
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+          - backend
+          - read
+          - write
+  jobLabel: app.kubernetes.io/instance
+  podMetricsEndpoints:
+    - port: http-metrics
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-metrics
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/instance
+        operator: In
+        values: [loki]
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+          - backend
+          - read
+          - write
+  ingress:
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: http-metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
