@@ -135,6 +135,11 @@ receivers:
       http:
         endpoint: "[${env:POD_IP}]:4318"
 
+  otlp/local:
+    protocols:
+      grpc:
+        endpoint: "[${env:POD_IP}]:14317"
+
   k8s_cluster:
     k8s_leader_elector: k8s_leader_elector
     collection_interval: 15s
@@ -225,6 +230,14 @@ service:
         - batch
         - k8sattributes
         - resource/kubelet
+      exporters: [forward]
+
+    logs/podlog:
+      receivers: [otlp/local]
+      processors:
+        - memory_limiter
+        - batch
+        - k8sattributes
       exporters: [forward]
 
     metrics/export:

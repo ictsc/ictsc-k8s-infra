@@ -17,6 +17,16 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/name: host-collector
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: host-collector
+  namespace: telemetry
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
     app.kubernetes.io/instance: loki
   name: loki-backend
   namespace: telemetry
@@ -684,6 +694,11 @@ data:
           http:
             endpoint: "[${env:POD_IP}]:4318"
 
+      otlp/local:
+        protocols:
+          grpc:
+            endpoint: "[${env:POD_IP}]:14317"
+
       k8s_cluster:
         k8s_leader_elector: k8s_leader_elector
         collection_interval: 15s
@@ -776,6 +791,14 @@ data:
             - resource/kubelet
           exporters: [forward]
 
+        logs/podlog:
+          receivers: [otlp/local]
+          processors:
+            - memory_limiter
+            - batch
+            - k8sattributes
+          exporters: [forward]
+
         metrics/export:
           receivers: [forward]
           processors: [resource]
@@ -812,8 +835,71 @@ kind: ConfigMap
 metadata:
   labels:
     app.kubernetes.io/component: collector
+    app.kubernetes.io/name: collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-5td69gth78
+  name: collector-config-d9dfhhg9gk
+  namespace: telemetry
+---
+apiVersion: v1
+data:
+  config.yaml: |
+    exporters:
+      otlp/local:
+        endpoint: otlp:14317
+        tls:
+          insecure: true
+        sending_queue:
+          storage: file_storage
+
+    extensions:
+      health_check:
+        endpoint: "[${env:POD_IP}]:13133"
+      file_storage:
+        directory: /var/lib/otelcol/file_storage
+        create_directory: true
+        timeout: 30s
+
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+
+    receivers:
+      filelog:
+        include:
+          - /var/log/pods/*/*/*.log*
+        exclude:
+          - /var/log/pods/telemetry_collector-*/*/*.log*
+          - /var/log/pods/telemetry_host-collector-*/*/*.log*
+        start_at: beginning
+        storage: file_storage
+        include_file_path: true
+        include_file_name: false
+        compression: auto
+        operators:
+          - type: container
+
+    service:
+      extensions:
+        - health_check
+        - file_storage
+
+      pipelines:
+        logs:
+          receivers: [filelog]
+          processors:
+            - memory_limiter
+            - batch
+          exporters: [otlp/local]
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/name: host-collector-config
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: host-collector-config-tm4m6mth8k
   namespace: telemetry
 ---
 apiVersion: v1
@@ -1125,6 +1211,10 @@ spec:
   - name: http
     port: 4318
     targetPort: otlp-http
+  - name: grpc-local
+    port: 14317
+    protocol: TCP
+    targetPort: otlp-local-grpc
   selector:
     app.kubernetes.io/name: collector
 ---
@@ -2074,6 +2164,8 @@ spec:
           name: otlp-grpc
         - containerPort: 4318
           name: otlp-http
+        - containerPort: 14317
+          name: otlp-local-grpc
         readinessProbe:
           httpGet:
             path: /
@@ -2094,6 +2186,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/otelcol
           name: config
+          readOnly: true
       securityContext:
         runAsGroup: 65532
         runAsNonRoot: true
@@ -2103,12 +2196,105 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-5td69gth78
+          name: collector-config-d9dfhhg9gk
         name: config
   updateStrategy:
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 0
+    type: RollingUpdate
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/name: host-collector
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: host-collector
+  namespace: telemetry
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: host-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: host-collector
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --config
+        - /etc/otelcol/config.yaml
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: GOMEMLIMIT
+          valueFrom:
+            resourceFieldRef:
+              resource: requests.memory
+        image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /
+            port: healthz
+        name: otelcol
+        ports:
+        - containerPort: 13133
+          name: healthz
+        readinessProbe:
+          httpGet:
+            path: /
+            port: healthz
+        resources:
+          limits:
+            cpu: 50m
+            memory: 100Mi
+          requests:
+            cpu: 50m
+            memory: 80Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/otelcol
+          name: config
+          readOnly: true
+        - mountPath: /var/lib/otelcol
+          name: data
+        - mountPath: /var/log/pods
+          name: pod-logs
+          readOnly: true
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: host-collector
+      volumes:
+      - configMap:
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: host-collector-config-tm4m6mth8k
+        name: config
+      - hostPath:
+          path: /var/lib/kube/host-collector
+          type: DirectoryOrCreate
+        name: data
+      - hostPath:
+          path: /var/log/pods
+        name: pod-logs
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
     type: RollingUpdate
 ---
 apiVersion: cilium.io/v2
@@ -2159,6 +2345,33 @@ spec:
         protocol: TCP
       - port: otlp-http
         protocol: TCP
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: host-collector
+    toPorts:
+    - ports:
+      - port: otlp-local-grpc
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: host-collector
+  namespace: telemetry
+spec:
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: collector
+    toPorts:
+    - ports:
+      - port: otlp-local-grpc
+        protocol: TCP
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: host-collector
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

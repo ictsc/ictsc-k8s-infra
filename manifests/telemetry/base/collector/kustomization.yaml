@@ -7,13 +7,21 @@ configMapGenerator:
     options:
       labels:
         app.kubernetes.io/component: collector
+        app.kubernetes.io/name: collector-config
     files:
       - config.yaml=collector-config.yaml
+  - name: host-collector-config
+    options:
+      labels:
+        app.kubernetes.io/component: collector
+        app.kubernetes.io/name: host-collector-config
+    files:
+      - config.yaml=host-collector-config.yaml
 
 resources:
-  - otlp-service.yaml
   - collector-rbac.yaml
-  - collector-daemonset.yaml
+  - collector.yaml
+  - host-collector.yaml
   - target-allocator-rbac.yaml
   - target-allocator-deployment.yaml
   - target-allocator-service.yaml

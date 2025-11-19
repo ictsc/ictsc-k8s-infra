@@ -6,6 +6,14 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: opentelemetry-collector
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: host-collector
+  labels:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/name: host-collector
+---
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.139.0/processor/k8sattributesprocessor#cluster-scoped-rbac
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
