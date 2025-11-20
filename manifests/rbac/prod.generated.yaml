@@ -133,7 +133,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels: rbac.authorization.k8s.io/aggregate-to-cluster-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-view: "true"
   name: k0s-cluster-view
 rules:
 - apiGroups:
