@@ -42,7 +42,19 @@ spec:
                   app.kubernetes.io/name: loki-backend
                   app.kubernetes.io/component: backend
               topologyKey: kubernetes.io/hostname
-      resources: {}
+      initContainers:
+        - name: otel-auto-instrumentation-python-init
+          image: otel-autoinstrumentation-python:TO_BE_FILLED
+          imagePullPolicy: IfNotPresent
+          command: ["cp", "-r", "/autoinstrumentation-musl/.", "/otel-auto-instrumentation-python/"]
+          volumeMounts:
+            - mountPath: /otel-auto-instrumentation-python
+              name: opentelemetry-auto-instrumentation-python
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
       containers:
         - name: loki
           image: loki:TO_BE_FILLED
@@ -58,6 +70,10 @@ spec:
               value: WHEN_REQUIRED
             - name: AWS_SHARED_CREDENTIALS_FILE
               value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+            - name: GOMEMLIMIT
+              valueFrom:
+                resourceFieldRef:
+                  resource: requests.memory
           volumeMounts:
             - mountPath: /etc/loki/config
               name: config
@@ -76,6 +92,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          resources:
+            limits:
+              memory: 200Mi
+              cpu: "1"
+            requests:
+              memory: 180Mi
+              cpu: 10m
           ports:
             - name: http-metrics
               containerPort: 3100
@@ -112,16 +135,50 @@ spec:
               value: "60"
             - name: LOG_LEVEL
               value: info
+            - name: PYTHONPATH
+              value: /otel-auto-instrumentation-python/opentelemetry/instrumentation/auto_instrumentation:/otel-auto-instrumentation-python
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otlp.telemetry.svc.cluster.local:4318
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
+            - name: OTEL_TRACES_EXPORTER
+              value: none
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.name=loki,k8s.container.name=loki-sc-rules
           volumeMounts:
             - mountPath: /rules
               name: sc-rules-volume
             - mountPath: /tmp
               name: tmp
+            - mountPath: /otel-auto-instrumentation-python
+              name: opentelemetry-auto-instrumentation-python
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          resources:
+            limits:
+              memory: 250Mi
+              cpu: 200m
+            requests:
+              memory: 200Mi
+              cpu: 10m
+          #FIXME: k8s-sidecar does not listen on IPv6
+          # readinessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: sidecar-health
+          #   initialDelaySeconds: 20
+          #   periodSeconds: 5
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: sidecar-health
+          #   initialDelaySeconds: 35
+          #   periodSeconds: 10
       volumes:
         - name: config
           configMap:
@@ -143,6 +200,9 @@ spec:
         - name: tmp
           emptyDir:
             medium: Memory
+        - name: opentelemetry-auto-instrumentation-python
+          emptyDir: # FIXME: use ImageVolumes (requires containerd 2.2.0+)
+            sizeLimit: 200Mi
   volumeClaimTemplates:
     - metadata:
         name: data

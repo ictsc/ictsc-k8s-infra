@@ -41,7 +41,6 @@ spec:
                   app.kubernetes.io/name: loki-read
                   app.kubernetes.io/component: read
               topologyKey: kubernetes.io/hostname
-      resources: {}
       containers:
         - name: loki
           image: loki:TO_BE_FILLED
@@ -56,6 +55,8 @@ spec:
               value: WHEN_REQUIRED
             - name: AWS_SHARED_CREDENTIALS_FILE
               value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
+            - name: GOMEMLIMIT
+              value: 270MiB
           volumeMounts:
             - mountPath: /etc/loki/config
               name: config
@@ -72,6 +73,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          resources:
+            limits:
+              memory: 300Mi
+              cpu: 500m
+            requests:
+              memory: 50Mi
+              cpu: 100m
           ports:
             - name: http-metrics
               containerPort: 3100

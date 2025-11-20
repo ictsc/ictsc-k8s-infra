@@ -42,7 +42,6 @@ spec:
                   app.kubernetes.io/name: loki-write
                   app.kubernetes.io/component: write
               topologyKey: kubernetes.io/hostname
-      resources: {}
       containers:
         - name: loki
           image: loki:TO_BE_FILLED
@@ -71,6 +70,13 @@ spec:
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: 100m
           ports:
             - name: http-metrics
               containerPort: 3100
