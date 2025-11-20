@@ -10,6 +10,7 @@ exporters:
     endpoint: http://loki-write:3100/otlp
 
 extensions:
+  pprof:
   health_check:
     endpoint: "[${env:POD_IP}]:13133"
   k8s_leader_elector:
@@ -112,6 +113,12 @@ processors:
         key: service.instance.id
         from_attribute: k8s.namespace.uid
 
+  resource/k8sobjects:
+    attributes:
+      - action: insert
+        key: service.name
+        value: k8sobjects
+
   resource/kubelet:
     attributes:
       - action: insert
@@ -151,6 +158,16 @@ receivers:
       - memory
       - pods
 
+  k8sobjects:
+    auth_type: serviceAccount
+    k8s_leader_elector: k8s_leader_elector
+    objects:
+      - name: pods
+        mode: pull
+        interval: 15m
+      - name: events
+        mode: watch
+
   kubeletstats:
     collection_interval: 15s
     initial_delay: 1s
@@ -186,6 +203,7 @@ receivers:
 
 service:
   extensions:
+    - pprof
     - health_check
     - k8s_leader_elector
 
@@ -219,6 +237,14 @@ service:
         - memory_limiter
         - batch
         - resource/k8s_cluster
+      exporters: [forward]
+    logs/k8sobjects:
+      receivers: [k8sobjects]
+      processors:
+        - memory_limiter
+        - batch
+        - k8sattributes
+        - resource/k8sobjects
       exporters: [forward]
 
     metrics/kubeletstats:

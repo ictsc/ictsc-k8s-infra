@@ -360,6 +360,30 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:k8s-objects-receiver
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  - pods
+  verbs:
+  - get
+  - watch
+  - list
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - watch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
   name: telemetry-collector:kubelet-stats-receiver
 rules:
 - apiGroups:
@@ -513,6 +537,21 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/part-of: opentelemetry-collector
+  name: telemetry-collector:k8s-objects-receiver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: telemetry-collector:k8s-objects-receiver
+subjects:
+- kind: ServiceAccount
+  name: collector
+  namespace: telemetry
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
   name: telemetry-collector:kubelet-stats-receiver
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -569,6 +608,7 @@ data:
         endpoint: http://loki-write:3100/otlp
 
     extensions:
+      pprof:
       health_check:
         endpoint: "[${env:POD_IP}]:13133"
       k8s_leader_elector:
@@ -671,6 +711,12 @@ data:
             key: service.instance.id
             from_attribute: k8s.namespace.uid
 
+      resource/k8sobjects:
+        attributes:
+          - action: insert
+            key: service.name
+            value: k8sobjects
+
       resource/kubelet:
         attributes:
           - action: insert
@@ -710,6 +756,16 @@ data:
           - memory
           - pods
 
+      k8sobjects:
+        auth_type: serviceAccount
+        k8s_leader_elector: k8s_leader_elector
+        objects:
+          - name: pods
+            mode: pull
+            interval: 15m
+          - name: events
+            mode: watch
+
       kubeletstats:
         collection_interval: 15s
         initial_delay: 1s
@@ -745,6 +801,7 @@ data:
 
     service:
       extensions:
+        - pprof
         - health_check
         - k8s_leader_elector
 
@@ -778,6 +835,14 @@ data:
             - memory_limiter
             - batch
             - resource/k8s_cluster
+          exporters: [forward]
+        logs/k8sobjects:
+          receivers: [k8sobjects]
+          processors:
+            - memory_limiter
+            - batch
+            - k8sattributes
+            - resource/k8sobjects
           exporters: [forward]
 
         metrics/kubeletstats:
@@ -837,7 +902,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-d9dfhhg9gk
+  name: collector-config-4795m76bg7
   namespace: telemetry
 ---
 apiVersion: v1
@@ -852,6 +917,7 @@ data:
           storage: file_storage
 
     extensions:
+      pprof:
       health_check:
         endpoint: "[${env:POD_IP}]:13133"
       file_storage:
@@ -883,6 +949,7 @@ data:
 
     service:
       extensions:
+        - pprof
         - health_check
         - file_storage
 
@@ -899,7 +966,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: host-collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: host-collector-config-tm4m6mth8k
+  name: host-collector-config-tcbtmbkd54
   namespace: telemetry
 ---
 apiVersion: v1
@@ -2264,7 +2331,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-d9dfhhg9gk
+          name: collector-config-4795m76bg7
         name: config
   updateStrategy:
     rollingUpdate:
@@ -2350,7 +2417,7 @@ spec:
           items:
           - key: config.yaml
             path: config.yaml
-          name: host-collector-config-tm4m6mth8k
+          name: host-collector-config-tcbtmbkd54
         name: config
       - hostPath:
           path: /var/lib/kube/host-collector
