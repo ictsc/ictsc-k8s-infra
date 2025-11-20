@@ -6,5 +6,6 @@ labels:
 resources:
   - networkpolicy.yaml
   - monitor.yaml
+  - user-roles.yaml
   - controller-rbac.yaml
   - controller-deploy.yaml
