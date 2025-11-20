@@ -10,7 +10,7 @@ metadata:
 spec:
   schedule: "0 */6 * * *"
   startingDeadlineSeconds: 3600
-  successfulJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 0
   jobTemplate:
     metadata:
       labels:
@@ -96,7 +96,7 @@ spec:
                     accessModes: [ReadWriteOnce]
                     resources:
                       requests:
-                        storage: 5Gi
+                        storage: 10Gi
             - name: thanos-s3-secrets
               csi:
                 driver: secrets-store.csi.k8s.io
