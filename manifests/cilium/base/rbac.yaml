@@ -1,0 +1,53 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cilium-cluster-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-view: "true"
+rules:
+  - apiGroups: ["cilium.io"]
+    resources:
+      - ciliumcidrgroups
+      - ciliumclusterwideenvoyconfigs
+      - ciliumclusterwidenetworkpolicies
+      - ciliumidentities
+      - ciliuml2announcementpolicies
+      - ciliumloadbalancerippools
+      - ciliumnodes
+      - ciliumpodippools
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cilium-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["cilium.io"]
+    resources:
+      - ciliumendpoints
+      - ciliumenvoyconfigs
+      - ciliumgatewayclassconfigs
+      - ciliumnetworkpolicies
+      - ciliumnodeconfigs
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cilium-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["cilium.io"]
+    resources:
+      #- ciliumendpoints Endpoints cannot modify with edit role
+      - ciliumenvoyconfigs
+      - ciliumgatewayclassconfigs
+      - ciliumnetworkpolicies
+      # - ciliumnodeconfigs ?
+    verbs: ["create", "delete", "deletecollection", "patch", "update"]

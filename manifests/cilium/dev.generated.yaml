@@ -285,6 +285,50 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-view: "true"
+  name: cilium-cluster-view
+rules:
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumcidrgroups
+  - ciliumclusterwideenvoyconfigs
+  - ciliumclusterwidenetworkpolicies
+  - ciliumidentities
+  - ciliuml2announcementpolicies
+  - ciliumloadbalancerippools
+  - ciliumnodes
+  - ciliumpodippools
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+  name: cilium-edit
+rules:
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumenvoyconfigs
+  - ciliumgatewayclassconfigs
+  - ciliumnetworkpolicies
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
     app.kubernetes.io/part-of: cilium
   name: cilium-operator
 rules:
@@ -573,6 +617,28 @@ rules:
   - ciliumendpointslices
   verbs:
   - deletecollection
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  name: cilium-view
+rules:
+- apiGroups:
+  - cilium.io
+  resources:
+  - ciliumendpoints
+  - ciliumenvoyconfigs
+  - ciliumgatewayclassconfigs
+  - ciliumnetworkpolicies
+  - ciliumnodeconfigs
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -2217,28 +2283,6 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: hubble-generate-certs
----
-apiVersion: cilium.io/v2
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: allow-web-to-ingress
-  namespace: kube-system
-spec:
-  endpointSelector:
-    matchExpressions:
-    - key: reserved:ingress
-      operator: Exists
-  ingress:
-  - fromEntities:
-    - all
-    toPorts:
-    - ports:
-      - port: "80"
-        protocol: TCP
-      - port: "443"
-        protocol: TCP
-      - port: "443"
-        protocol: UDP
 ---
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
