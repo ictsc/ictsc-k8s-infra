@@ -1,0 +1,11 @@
+global:
+  domain: argocd.k8s-prod.ictsc.net
+
+configs:
+  rbac:
+    policy.csv: |
+      g, ictsc:ictsc2025, role:readonly
+  secret:
+    extra:
+      oidc.clientID: hwjqkbcrybfn3dp3qczjweb4y
+      oidc.cliClientID: gsfwlmrs4jule7zalu6c76brj

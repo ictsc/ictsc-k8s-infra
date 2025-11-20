@@ -1,0 +1,27 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      - op: add
+        path: /spec/source/directory
+        value:
+          include: prod.generated.yaml
+      - op: add
+        path: /spec/syncPolicy/automated
+        value:
+          enabled: true
+          prune: true
+          selfHeal: true
+
+helmCharts:
+  - name: argo-cd
+    repo: oci://ghcr.io/argoproj/argo-helm
+    version: 9.1.3
+    releaseName: argo-cd
+    namespace: argo-system
+    valuesFile: ../base/argocd-values.yaml
+    additionalValuesFiles:
+      - argocd-values.yaml
