@@ -1,0 +1,194 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-extra
+  namespace: argo-system
+spec:
+  destination:
+    namespace: argo-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/argocd-extra
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argo-system
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/cert-manager
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-extra
+  namespace: argo-system
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/cilium-extra
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-secrets-store
+  namespace: argo-system
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/csi-secrets-store
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: envoy-gateway
+  namespace: argo-system
+spec:
+  destination:
+    namespace: envoy-gateway-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/envoy-gateway
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: argo-system
+spec:
+  destination:
+    namespace: gateway
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/gateway
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: telemetry
+  namespace: argo-system
+spec:
+  destination:
+    namespace: telemetry
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/telemetry
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: topolvm
+  namespace: argo-system
+spec:
+  destination:
+    namespace: topolvm-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/topolvm
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

@@ -1,0 +1,20 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      kind: Application
+    patch: |-
+      - op: add
+        path: /spec/source/directory
+        value:
+          include: "{crds,prod}.generated.yaml"
+      - op: add
+        path: /spec/syncPolicy/automated/enabled
+        value: true
+      - op: add
+        path: /spec/syncPolicy/automated/prune
+        value: true
+      - op: add
+        path: /spec/syncPolicy/automated/selfHeal
+        value: true
