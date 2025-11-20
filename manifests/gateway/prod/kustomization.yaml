@@ -1,0 +1,5 @@
+resources:
+  - ../base
+  - cluster-param.yaml
+components:
+  - ../components
