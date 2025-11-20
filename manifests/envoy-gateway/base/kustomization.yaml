@@ -6,3 +6,4 @@ resources:
   - network-policy.yaml
   - monitor.yaml
   - hmac-secret-manager.yaml
+  - user-roles.yaml

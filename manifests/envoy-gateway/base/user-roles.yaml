@@ -1,0 +1,87 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-cluster-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-view: "true"
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gatewayclasses"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - backendtlspolicies
+      - gateways
+      - grpcroutes
+      - httproutes
+      - referencegrants
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gateway-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - backendtlspolicies
+      - gateways
+      - grpcroutes
+      - httproutes
+      - referencegrants
+    verbs: ["create", "delete", "deletecollection", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: envoy-gateway-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["gateway.envoyproxy.io"]
+    resources:
+      - backends
+      - backendtrafficpolicies
+      - clienttrafficpolicies
+      - envoyextensionpolicies
+      - envoypatchpolicies
+      - envoyproxies
+      - httproutefilters
+      - securitypolicies
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: envoy-gateway-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["gateway.envoyproxy.io"]
+    resources:
+      # Same as endpoints
+      # - backends
+      - backendtrafficpolicies
+      - clienttrafficpolicies
+      - envoyextensionpolicies
+      - envoypatchpolicies
+      - envoyproxies
+      - httproutefilters
+      - securitypolicies
+    verbs: ["create", "delete", "deletecollection", "patch", "update"]
