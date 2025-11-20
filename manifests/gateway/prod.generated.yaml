@@ -343,10 +343,10 @@ spec:
             capabilities:
               add:
               - NET_ADMIN
-        replicas: 1
+        replicas: 2
       envoyService:
         annotations:
-          lbipam.cilium.io/ips: 2001:e42:407:103c:1::80,64:ff9b::163.43.176.221
+          lbipam.cilium.io/ips: 2001:e42:407:1047:1::80,64:ff9b::163.43.66.205
           service.cilium.io/forwarding-mode: dsr
         externalTrafficPolicy: Cluster
         labels:
@@ -377,14 +377,14 @@ spec:
     clientID: or4pllyrzelrqeb3og2psunvm
     clientSecret:
       name: auth-proxy-client-secret
-    cookieDomain: k8s-dev.ictsc.net
+    cookieDomain: k8s-prod.ictsc.net
     logoutPath: /oauth2/logout
     provider:
       backendSettings:
         retry:
           numRetries: 3
       issuer: https://dex.ictsc.net
-    redirectURL: https://login.k8s-dev.ictsc.net/oauth2/callback
+    redirectURL: https://login.k8s-prod.ictsc.net/oauth2/callback
     scopes:
     - openid
   targetRefs:
@@ -414,7 +414,7 @@ spec:
         selector:
           matchLabels:
             kubernetes.io/metadata.name: argo-system
-    hostname: argocd.k8s-dev.ictsc.net
+    hostname: argocd.k8s-prod.ictsc.net
     name: argocd-https
     port: 443
     protocol: HTTPS
@@ -428,7 +428,7 @@ spec:
         selector:
           matchLabels:
             kubernetes.io/metadata.name: telemetry
-    hostname: telemetry.k8s-dev.ictsc.net
+    hostname: telemetry.k8s-prod.ictsc.net
     name: telemetry-https
     port: 443
     protocol: HTTPS
@@ -450,7 +450,7 @@ spec:
   - allowedRoutes:
       namespaces:
         from: Same
-    hostname: login.k8s-dev.ictsc.net
+    hostname: login.k8s-prod.ictsc.net
     name: login-https
     port: 443
     protocol: HTTPS
@@ -464,7 +464,7 @@ spec:
         selector:
           matchLabels:
             kubernetes.io/metadata.name: kube-system
-    hostname: hubble.k8s-dev.ictsc.net
+    hostname: hubble.k8s-prod.ictsc.net
     name: hubble-https
     port: 443
     protocol: HTTPS
@@ -493,7 +493,7 @@ metadata:
   namespace: gateway
 spec:
   hostnames:
-  - login.k8s-dev.ictsc.net
+  - login.k8s-prod.ictsc.net
   parentRefs:
   - name: web-with-auth
   rules:
@@ -510,7 +510,7 @@ spec:
   parameters:
     secrets: |
       - name: auth-proxy-client-secret
-    vaultID: "113702555287"
+    vaultID: "113702773889"
   provider: sakuracloud
   secretObjects:
   - annotations:
