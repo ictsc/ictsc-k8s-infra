@@ -1,2 +1,4 @@
 resources:
   - service-account-issuer-discovery-rbac.yaml
+  - cluster-view.yaml
+  - k0s-rbac.yaml
