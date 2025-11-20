@@ -2148,7 +2148,7 @@ spec:
                   - ReadWriteOnce
                   resources:
                     requests:
-                      storage: 5Gi
+                      storage: 10Gi
                   storageClassName: topolvm-provisioner
             name: thanos-data
           - csi:
@@ -2162,7 +2162,7 @@ spec:
             name: thanos-object-store-config
   schedule: 0 */6 * * *
   startingDeadlineSeconds: 3600
-  successfulJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 0
 ---
 apiVersion: apps/v1
 kind: DaemonSet
