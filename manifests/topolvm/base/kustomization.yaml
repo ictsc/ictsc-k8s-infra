@@ -3,3 +3,4 @@ namespace: topolvm-system
 resources:
   - namespace.yaml
   - policy.yaml
+  - user-role.yaml
