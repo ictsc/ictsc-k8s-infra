@@ -1983,6 +1983,13 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1998,7 +2005,6 @@ spec:
           name: s3-secrets
         - mountPath: /var/loki
           name: data
-      resources: {}
       securityContext:
         fsGroup: 10001
         runAsGroup: 10001
