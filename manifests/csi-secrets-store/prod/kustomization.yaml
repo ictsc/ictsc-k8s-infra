@@ -1,0 +1,14 @@
+resources:
+  - ../base
+
+helmCharts:
+  - name: secrets-store-csi-driver
+    repo: https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+    version: 1.5.4
+    releaseName: csi-secrets-store
+    namespace: kube-system
+    valuesFile: ../base/csi-helm-values.yaml
+
+images:
+  - name: ghcr.io/tosuke/secrets-store-csi-driver-provider-sakuracloud
+    newTag: v0.2.1
