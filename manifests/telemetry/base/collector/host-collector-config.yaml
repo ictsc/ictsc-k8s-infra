@@ -7,6 +7,7 @@ exporters:
       storage: file_storage
 
 extensions:
+  pprof:
   health_check:
     endpoint: "[${env:POD_IP}]:13133"
   file_storage:
@@ -38,6 +39,7 @@ receivers:
 
 service:
   extensions:
+    - pprof
     - health_check
     - file_storage
 
