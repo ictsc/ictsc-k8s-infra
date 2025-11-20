@@ -45,13 +45,14 @@ MANIFESTS := $(addsuffix /dev.generated.yaml,$(MANIFESTS_DIR))
 CHARTS := $(addsuffix /dev/charts,$(MANIFESTS_DIR)) $(addsuffix /base/charts,$(MANIFESTS_DIR))
 
 CRD_MANIFESTS := $(addsuffix crds.generated.yaml,$(dir $(wildcard manifests/*/crds)))
+PROD_MANIFESTS := $(addsuffix prod.generated.yaml,$(dir $(wildcard manifests/*/prod)))
 
 .PHONY: manifests clean-manifests
 
-manifests: $(CRD_MANIFESTS) $(MANIFESTS)
+manifests: $(CRD_MANIFESTS) $(PROD_MANIFESTS) $(MANIFESTS)
 
 clean-manifests:
-	rm -f $(CRD_MANIFESTS)
+	rm -f $(CRD_MANIFESTS) $(PROD_MANIFESTS)
 	rm -rf $(CHARTS)
 	rm -f $(MANIFESTS)
 
@@ -59,6 +60,8 @@ clean-manifests:
 manifests/%/crds.generated.yaml: $$(shell find manifests/$$*/crds -type f 2>/dev/null)
 	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone manifests/$*/crds > $@
 
-.SECONDEXPANSION:
 manifests/%/dev.generated.yaml: $$(shell find manifests/$$*/dev manifests/$$*/base manifests/$$*/components -type f 2>/dev/null)
 	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone manifests/$*/dev > $@
+
+manifests/%/prod.generated.yaml: $$(shell find manifests/$$*/prod manifests/$$*/base manifests/$$*/components -type f 2>/dev/null)
+	kustomize build --enable-helm --load-restrictor LoadRestrictionsNone manifests/$*/prod > $@
