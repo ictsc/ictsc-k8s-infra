@@ -1,0 +1,10 @@
+resources:
+  - ../base
+
+helmCharts:
+  - name: cilium
+    repo: https://helm.cilium.io/
+    version: 1.19.0-pre.2
+    releaseName: cilium
+    namespace: kube-system
+    valuesFile: ../base/cilium-values.yaml

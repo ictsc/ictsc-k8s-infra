@@ -1,3 +1,6 @@
+namespace: argo-system
+
 resources:
   - namespace.yaml
   - app-of-apps.yaml
+  - rbac.yaml

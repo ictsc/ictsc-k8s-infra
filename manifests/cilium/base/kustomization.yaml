@@ -4,3 +4,4 @@ resources:
   - cilium-policy.yaml
   - cilium-host-policy.yaml
   - l2-announcement.yaml
+  - rbac.yaml

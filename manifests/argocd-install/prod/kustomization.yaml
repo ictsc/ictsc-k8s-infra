@@ -8,11 +8,13 @@ patches:
       - op: add
         path: /spec/source/directory
         value:
-          include: dev.generated.yaml
+          include: prod.generated.yaml
       - op: add
         path: /spec/syncPolicy/automated
         value:
           enabled: true
+          prune: true
+          selfHeal: true
 
 helmCharts:
   - name: argo-cd

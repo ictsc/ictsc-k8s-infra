@@ -5,3 +5,4 @@
     state: restarted
     daemon_reload: true
   become: true
+  failed_when: false

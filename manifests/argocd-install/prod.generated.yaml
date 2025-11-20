@@ -891,7 +891,7 @@ data:
   statusbadge.enabled: "false"
   timeout.hard.reconciliation: 0s
   timeout.reconciliation: 180s
-  url: https://argocd.k8s-dev.ictsc.net
+  url: https://argocd.k8s-prod.ictsc.net
 kind: ConfigMap
 metadata:
   labels:
@@ -956,7 +956,7 @@ metadata:
 apiVersion: v1
 data:
   context: |
-    argocdUrl: https://argocd.k8s-dev.ictsc.net
+    argocdUrl: https://argocd.k8s-prod.ictsc.net
 kind: ConfigMap
 metadata:
   labels:
@@ -973,7 +973,7 @@ metadata:
 apiVersion: v1
 data:
   policy.csv: |
-    g, ictsc:ictsc2025, role:admin
+    g, ictsc:ictsc2025, role:readonly
   policy.default: ""
   policy.matchMode: glob
   scopes: '[groups]'
@@ -1698,7 +1698,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: de3040ba19764358fcc9bccfd2336690336bc57fa5914d8cfb7c1fbe6740ea72
+        checksum/cm: 4ad9acc9816eca036fee3d382baff1d56fc3ccfb6e3771053c4d0411bc42b472
         checksum/cmd-params: 8fce72e3ea38e65d7663419db438cfbe5590ccae97cd1b17cfc1ca11c8193d23
       labels:
         app.kubernetes.io/component: repo-server
@@ -2110,7 +2110,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: de3040ba19764358fcc9bccfd2336690336bc57fa5914d8cfb7c1fbe6740ea72
+        checksum/cm: 4ad9acc9816eca036fee3d382baff1d56fc3ccfb6e3771053c4d0411bc42b472
         checksum/cmd-params: 8fce72e3ea38e65d7663419db438cfbe5590ccae97cd1b17cfc1ca11c8193d23
       labels:
         app.kubernetes.io/component: server
@@ -2572,7 +2572,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/cm: de3040ba19764358fcc9bccfd2336690336bc57fa5914d8cfb7c1fbe6740ea72
+        checksum/cm: 4ad9acc9816eca036fee3d382baff1d56fc3ccfb6e3771053c4d0411bc42b472
         checksum/cmd-params: 8fce72e3ea38e65d7663419db438cfbe5590ccae97cd1b17cfc1ca11c8193d23
       labels:
         app.kubernetes.io/component: application-controller
@@ -2957,13 +2957,15 @@ spec:
   project: default
   source:
     directory:
-      include: dev.generated.yaml
+      include: prod.generated.yaml
     path: manifests/argocd-apps
     repoURL: https://github.com/ictsc/ictsc-k8s-infra
     targetRevision: main
   syncPolicy:
     automated:
       enabled: true
+      prune: true
+      selfHeal: true
     syncOptions:
     - ServerSideApply=true
 ---

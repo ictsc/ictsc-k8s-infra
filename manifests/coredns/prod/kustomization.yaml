@@ -1,0 +1,7 @@
+resources:
+  - ../base
+
+images:
+  - name: coredns
+    newName: quay.io/k0sproject/coredns
+    newTag: "1.13.1"
