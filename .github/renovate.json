@@ -37,14 +37,22 @@
   ],
   "packageRules": [
     {
-      "matchPaths": ["manifests/**/dev/**"],
+      "matchFileNames": [
+        "manifests/**/dev/**"
+      ],
       "additionalBranchPrefix": "dev-",
-      "addLabels": ["env:dev"]
+      "addLabels": [
+        "env:dev"
+      ]
     },
     {
-      "matchPaths": ["manifests/**/prod/**"],
+      "matchFileNames": [
+        "manifests/**/prod/**"
+      ],
       "additionalBranchPrefix": "prod-",
-      "addLabels": ["env:prod"]
+      "addLabels": [
+        "env:prod"
+      ]
     }
   ]
 }
