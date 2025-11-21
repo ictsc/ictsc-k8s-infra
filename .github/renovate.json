@@ -34,5 +34,17 @@
       ],
       "datasourceTemplate": "github-releases"
     }
+  ],
+  "packageRules": [
+    {
+      "matchPaths": ["manifests/**/dev/**"],
+      "additionalBranchPrefix": "dev-",
+      "addLabels": ["env:dev"]
+    },
+    {
+      "matchPaths": ["manifests/**/prod/**"],
+      "additionalBranchPrefix": "prod-",
+      "addLabels": ["env:prod"]
+    }
   ]
 }
