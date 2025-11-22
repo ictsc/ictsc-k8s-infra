@@ -686,8 +686,6 @@ data:
 
       k8sattributes:
         auth_type: serviceAccount
-        filter:
-          node_from_env_var: K8S_NODE_NAME
         extract:
           otel_annotations: true # resource.opentelemetry.io/name -> name
           metadata:
@@ -963,7 +961,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-4795m76bg7
+  name: collector-config-4c2hcmfd55
   namespace: telemetry
 ---
 apiVersion: v1
@@ -1678,7 +1676,7 @@ metadata:
   name: thanos-query
   namespace: telemetry
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: thanos-query
@@ -1694,9 +1692,11 @@ spec:
         - --http-address=0.0.0.0:9090
         - --log.level=info
         - --enable-auto-gomemlimit
-        - --auto-gomemlimit.ratio=0.7
+        - --auto-gomemlimit.ratio=0.6
         - --query.promql-engine=thanos
         - --query.replica-label=prometheus_replica
+        - --query.auto-downsampling
+        - --query.partial-response
         - --enable-feature=promql-experimental-functions
         - --endpoint=dnssrv+_grpc._tcp.prometheus-operated
         - --endpoint=dnssrv+_grpc._tcp.thanos-store
@@ -1722,8 +1722,8 @@ spec:
           periodSeconds: 5
         resources:
           limits:
-            cpu: 200m
-            memory: 512Mi
+            cpu: "1"
+            memory: 1Gi
           requests:
             cpu: 20m
             memory: 50Mi
@@ -1763,12 +1763,17 @@ spec:
       - args:
         - store
         - --enable-auto-gomemlimit
+        - --auto-gomemlimit.ratio=0.7
         - --http-address=0.0.0.0:10902
         - --grpc-address=0.0.0.0:10901
-        - --no-cache-index-header
+        - --data-dir=/data
         - --index-cache-size=250MB
         - --objstore.config-file=/etc/thanos/bucket.yaml
         env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         - name: AWS_REQUEST_CHECKSUM_CALCULATION
           value: WHEN_REQUIRED
         - name: AWS_RESPONSE_CHECKSUM_VALIDATION
@@ -1797,11 +1802,11 @@ spec:
           periodSeconds: 5
         resources:
           limits:
-            cpu: 200m
+            cpu: "1"
             memory: 512Mi
           requests:
             cpu: 20m
-            memory: 256Mi
+            memory: 64Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -1809,6 +1814,8 @@ spec:
             - ALL
           readOnlyRootFilesystem: true
         volumeMounts:
+        - mountPath: /data
+          name: thanos-data
         - mountPath: /mnt/secrets-store
           name: thanos-s3-secrets
           readOnly: true
@@ -1823,6 +1830,16 @@ spec:
           type: RuntimeDefault
       serviceAccountName: thanos-store
       volumes:
+      - ephemeral:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+              - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 256Mi
+              storageClassName: topolvm-provisioner
+        name: thanos-data
       - csi:
           driver: secrets-store.csi.k8s.io
           readOnly: true
@@ -2392,7 +2409,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-4795m76bg7
+          name: collector-config-4c2hcmfd55
         name: config
   updateStrategy:
     rollingUpdate:

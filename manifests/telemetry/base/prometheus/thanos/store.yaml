@@ -31,12 +31,17 @@ spec:
           args:
             - store
             - --enable-auto-gomemlimit
+            - --auto-gomemlimit.ratio=0.7
             - --http-address=0.0.0.0:10902
             - --grpc-address=0.0.0.0:10901
-            - --no-cache-index-header
+            - --data-dir=/data
             - --index-cache-size=250MB
             - --objstore.config-file=/etc/thanos/bucket.yaml
           env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: AWS_REQUEST_CHECKSUM_CALCULATION
               value: WHEN_REQUIRED
             - name: AWS_RESPONSE_CHECKSUM_VALIDATION
@@ -44,6 +49,8 @@ spec:
             - name: AWS_SHARED_CREDENTIALS_FILE
               value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
           volumeMounts:
+            - name: thanos-data
+              mountPath: /data
             - name: thanos-s3-secrets
               mountPath: /mnt/secrets-store
               readOnly: true
@@ -69,17 +76,26 @@ spec:
             periodSeconds: 5
           resources:
             limits:
-              cpu: 200m
+              cpu: "1"
               memory: 512Mi
             requests:
               cpu: 20m
-              memory: 256Mi
+              memory: 64Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
       volumes:
+        - name: thanos-data
+          ephemeral:
+            volumeClaimTemplate:
+              spec:
+                storageClassName: topolvm-provisioner
+                accessModes: ["ReadWriteOnce"]
+                resources:
+                  requests:
+                    storage: 256Mi
         - name: thanos-s3-secrets
           csi:
             driver: secrets-store.csi.k8s.io
