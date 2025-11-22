@@ -1,0 +1,67 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudnative-pg-cluster-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-cluster-view: "true"
+rules:
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusterimagecatalogs"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudnative-pg-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources:
+      - backups
+      - clusters
+      - databases
+      - failoverquorums
+      - imagecatalogs
+      - poolers
+      - publications
+      - scheduledbackups
+      - subscriptions
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources:
+      - backups/status
+      - clusters/status
+      - databases/status
+      - poolers/status
+      - publications/status
+      - scheduledbackups/status
+      - subscriptions/status
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudnative-pg-edit
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources:
+      - backups
+      - clusters
+      - databases
+      - failoverquorums
+      - imagecatalogs
+      - poolers
+      - publications
+      - scheduledbackups
+      - subscriptions
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources:
+      - clusters/status
+    verbs: ["update", "patch"]

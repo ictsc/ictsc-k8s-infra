@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: instance
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchExpressions:
+      - key: cnpg.io/cluster
+        operator: Exists
+      - key: cnpg.io/podRole
+        operator: In
+        values:
+          - instance
+  jobLabel: cnpg.io/cluster
+  podMetricsEndpoints:
+    - port: metrics
