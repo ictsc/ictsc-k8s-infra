@@ -686,6 +686,8 @@ data:
 
       k8sattributes:
         auth_type: serviceAccount
+        filter:
+          node_from_env_var: K8S_NODE_NAME
         extract:
           otel_annotations: true # resource.opentelemetry.io/name -> name
           metadata:
@@ -961,7 +963,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-4c2hcmfd55
+  name: collector-config-4795m76bg7
   namespace: telemetry
 ---
 apiVersion: v1
@@ -2409,7 +2411,7 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-4c2hcmfd55
+          name: collector-config-4795m76bg7
         name: config
   updateStrategy:
     rollingUpdate:
