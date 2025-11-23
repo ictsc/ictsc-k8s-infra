@@ -14,10 +14,10 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Technology Stack
 
-- **Infrastructure as Code**: Terraform v1.13.4 (Sakura Cloud provider v3.0.0-rc1, S3 backend)
+- **Infrastructure as Code**: Terraform (Sakura Cloud provider, S3 backend)
 - **Kubernetes**: k0s lightweight distribution with Cilium CNI
-- **Configuration Management**: Ansible v10+ (ansible-core v2.17+) with uv for Python package management
-- **Manifest Management**: Kustomize v5.8+ with Helm Chart integration
+- **Configuration Management**: Ansible with uv for Python package management
+- **Manifest Management**: Kustomize with Helm Chart integration
 - **CLI Tools**: aqua for declarative version management
   - tenv (Terraform/OpenTofu manager), uv (Python), usacloud (Sakura Cloud CLI)
   - kustomize, gh (GitHub CLI), cosign (container signing), trivy (security scanning)
