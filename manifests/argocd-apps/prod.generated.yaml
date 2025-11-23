@@ -73,6 +73,31 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: cloudnative-pg
+  namespace: argo-system
+spec:
+  destination:
+    namespace: cnpg-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,prod}.generated.yaml'
+    path: manifests/cloudnative-pg
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   name: csi-secrets-store
   namespace: argo-system
 spec:
