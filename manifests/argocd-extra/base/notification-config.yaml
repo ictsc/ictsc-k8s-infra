@@ -123,6 +123,8 @@ data:
       when: app.status.health.status == 'Degraded'
 
   # Default subscriptions for all applications
+  # These subscriptions will trigger notifications for every ArgoCD application in the cluster
+  # unless overridden with per-application annotations (notifications.argoproj.io/subscribe.<trigger>.<service>)
   subscriptions: |
     - recipients:
       - discord
