@@ -21,6 +21,9 @@ configs:
       clientID: $oidc.clientID
       clientSecret: $oidc-secret:clientSecret
       cliClientID: $oidc.cliClientID
+  secret:
+    extra:
+      github.webhook.secret: $github-secret:webhookSecret
 
 server:
   service:
