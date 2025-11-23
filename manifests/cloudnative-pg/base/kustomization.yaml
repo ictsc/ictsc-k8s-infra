@@ -1,0 +1,26 @@
+namespace: cnpg-system
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: cloudnative-pg
+    includeTemplates: true
+
+resources:
+  - namespace.yaml
+  - user-roles.yaml
+  - rbac.yaml
+  - cert.yaml
+  - manager.yaml
+  - webhook.yaml
+  - network-policy.yaml
+  - monitor.yaml
+
+configMapGenerator:
+  - name: default-monitoring-config
+    options:
+      disableNameSuffixHash: true
+      labels:
+        app.kubernetes.io/name: default-monitoring-config
+        cnpg.io/reload: ""
+    files:
+      - queries=default-monitoring-queries.yaml

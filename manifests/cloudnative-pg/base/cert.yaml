@@ -1,0 +1,32 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: webhook-ca
+spec:
+  isCA: true
+  commonName: ca.webhook.cnpg
+  issuerRef:
+    kind: ClusterIssuer
+    name: selfsigned-issuer
+  secretName: webhook-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: webhook-issuer
+spec:
+  ca:
+    secretName: webhook-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: webhook-tls
+spec:
+  dnsNames:
+    - webhook.cnpg-system.svc
+    - webhook.cnpg-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: webhook-issuer
+  secretName: webhook-tls

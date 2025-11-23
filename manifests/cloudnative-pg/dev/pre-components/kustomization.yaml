@@ -1,0 +1,7 @@
+resources:
+  - ../../base
+
+images:
+  - name: cnpg
+    newName: ghcr.io/cloudnative-pg/cloudnative-pg
+    newTag: 1.27.1

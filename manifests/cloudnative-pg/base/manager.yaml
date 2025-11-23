@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manager
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cloudnative-pg
+    spec:
+      serviceAccountName: manager
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: manager
+          image: cnpg:TO_BE_FILLED
+          imagePullPolicy: IfNotPresent
+          command: ["/manager"]
+          args:
+            - controller
+            - --leader-elect
+            - --max-concurrent-reconciles=10
+            - --webhook-port=9443
+            - --metrics-bind-address=:8080
+          env:
+            - name: OPERATOR_IMAGE
+              value: cnpg:TO_BE_FILLED
+            - name: OPERATOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MONITORING_QUERIES_CONFIGMAP
+              value: default-monitoring-config
+            - name: WEBHOOK_CERT_DIR
+              value: /run/secrets/cnpg.io/webhook
+          volumeMounts:
+            - mountPath: /controller
+              name: data
+            - mountPath: /run/secrets/cnpg.io/webhook
+              name: webhook-tls
+              readOnly: true
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - name: webhook
+              containerPort: 9443
+              protocol: TCP
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /readyz
+              port: webhook
+            failureThreshold: 6
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /readyz
+              port: webhook
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: webhook-tls
+          secret:
+            secretName: webhook-tls
+            items:
+              - key: tls.crt
+                path: apiserver.crt
+              - key: tls.key
+                path: apiserver.key
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: manager
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+  ingress:
+    - fromEntities:
+        - cluster
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: webhook
+              protocol: TCP
+    - fromEntities: [cluster]
+      toPorts:
+        - ports:
+            - port: metrics
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook
+spec:
+  selector:
+    app.kubernetes.io/name: cloudnative-pg
+  ports:
+    - name: webhook
+      port: 443
+      targetPort: webhook
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: manager
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+    - port: metrics
