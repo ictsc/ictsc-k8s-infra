@@ -1,0 +1,27 @@
+misconfigurations:
+  - id: KSV0125 # Restrict container images to trusted registries
+    statement: Accept the risk of using images from untrusted registries.
+  - id: KSV041 # Manage Secrets
+    statement: Operators should have permissions to manage secrets.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
+  - id: KSV050 # Manage Kubernetes RBAC resources
+    statement: Operators should have permissions to manage Kubernetes RBAC resources.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
+  - id: KSV056 # Manage Kubernetes networking
+    statement: Operators should have permissions to manage Kubernetes networking resources.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
+  - id: KSV053 # Exec into Pods
+    statement: Operators should have permissions to exec into pods.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
+  - id: KSV048 # Manage Kubernetes workloads and pods
+    statement: Operators should have permissions to manage Kubernetes workloads and pods.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
+  - id: KSV049 # Manage configmaps
+    statement: Operators should have permissions to manage configmaps.
+    path:
+      - manifests/cloudnative-pg/**/*.yaml
