@@ -135,6 +135,7 @@ spec:
   parameters:
     secrets: |
       - name: argocd-client-secret
+      - name: argocd-github-webhook-secret
     vaultID: "113702555287"
   provider: sakuracloud
   secretObjects:
@@ -144,4 +145,11 @@ spec:
     labels:
       app.kubernetes.io/part-of: argocd
     secretName: oidc-secret
+    type: Opaque
+  - data:
+    - key: webhookSecret
+      objectName: argocd-github-webhook-secret
+    labels:
+      app.kubernetes.io/part-of: argocd
+    secretName: github-secret
     type: Opaque

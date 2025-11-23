@@ -1050,6 +1050,7 @@ type: Opaque
 ---
 apiVersion: v1
 data:
+  github.webhook.secret: JGdpdGh1Yi1zZWNyZXQ6d2ViaG9va1NlY3JldA==
   oidc.cliClientID: Z3Nmd2xtcnM0anVsZTd6YWx1NmM3NmJyag==
   oidc.clientID: aHdqcWtiY3J5YmZuM2RwM3Fjemp3ZWI0eQ==
 kind: Secret
