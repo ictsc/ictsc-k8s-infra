@@ -1,0 +1,5 @@
+resources:
+  - ./pre-components
+
+components:
+  - ../components
