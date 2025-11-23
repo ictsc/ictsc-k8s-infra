@@ -31,3 +31,7 @@ server:
     servicePortHttps: 81
     servicePortHttpsName: grpc
     servicePortHttpsAppProtocol: kubernetes.io/h2c
+
+notifications:
+  secret:
+    create: false

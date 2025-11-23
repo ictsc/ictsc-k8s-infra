@@ -4,3 +4,4 @@ resources:
   - server-httproute.yaml
   - secret.yaml
   - monitor.yaml
+  - notification-config.yaml

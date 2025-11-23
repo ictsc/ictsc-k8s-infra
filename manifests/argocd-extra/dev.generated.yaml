@@ -6,6 +6,127 @@ metadata:
   name: secret-pin
   namespace: argo-system
 ---
+apiVersion: v1
+data:
+  service.webhook.discord: |
+    url: $discord-webhook-url
+    headers:
+    - name: Content-Type
+      value: application/json
+  subscriptions: |
+    - recipients:
+      - discord
+      triggers:
+      - on-deployed
+      - on-sync-failed
+      - on-health-degraded
+  template.app-deployed: |
+    webhook:
+      discord:
+        method: POST
+        body: |
+          {
+            "embeds": [
+              {
+                "title": "✅ Application Deployed",
+                "description": "Application **{{.app.metadata.name}}** has been successfully deployed.",
+                "color": 3066993,
+                "fields": [
+                  {
+                    "name": "Sync Status",
+                    "value": "{{.app.status.sync.status}}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Health Status",
+                    "value": "{{.app.status.health.status}}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Revision",
+                    "value": "{{.app.status.sync.revision}}",
+                    "inline": false
+                  }
+                ],
+                "timestamp": "{{.app.status.operationState.finishedAt}}"
+              }
+            ]
+          }
+  template.app-health-degraded: |
+    webhook:
+      discord:
+        method: POST
+        body: |
+          {
+            "embeds": [
+              {
+                "title": "⚠️ Health Degraded",
+                "description": "Application **{{.app.metadata.name}}** health status has degraded.",
+                "color": 16776960,
+                "fields": [
+                  {
+                    "name": "Health Status",
+                    "value": "{{.app.status.health.status}}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Sync Status",
+                    "value": "{{.app.status.sync.status}}",
+                    "inline": true
+                  }
+                ]
+              }
+            ]
+          }
+  template.app-sync-failed: |
+    webhook:
+      discord:
+        method: POST
+        body: |
+          {
+            "embeds": [
+              {
+                "title": "❌ Sync Failed",
+                "description": "Application **{{.app.metadata.name}}** sync has failed.",
+                "color": 15158332,
+                "fields": [
+                  {
+                    "name": "Sync Status",
+                    "value": "{{.app.status.sync.status}}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Error Message",
+                    "value": "{{.app.status.operationState.message}}",
+                    "inline": false
+                  }
+                ],
+                "timestamp": "{{.app.status.operationState.finishedAt}}"
+              }
+            ]
+          }
+  trigger.on-deployed: |
+    - description: Application is synced and healthy
+      send:
+      - app-deployed
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+  trigger.on-health-degraded: |
+    - description: Application health status has degraded
+      send:
+      - app-health-degraded
+      when: app.status.health.status == 'Degraded'
+  trigger.on-sync-failed: |
+    - description: Application sync has failed
+      send:
+      - app-sync-failed
+      when: app.status.operationState.phase in ['Error', 'Failed']
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: argocd
+  name: argocd-notifications-cm
+  namespace: argo-system
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -136,6 +257,7 @@ spec:
     secrets: |
       - name: argocd-client-secret
       - name: argocd-github-webhook-secret
+      - name: argocd-discord-webhook-url
     vaultID: "113702555287"
   provider: sakuracloud
   secretObjects:
@@ -152,4 +274,11 @@ spec:
     labels:
       app.kubernetes.io/part-of: argocd
     secretName: github-secret
+    type: Opaque
+  - data:
+    - key: discord-webhook-url
+      objectName: argocd-discord-webhook-url
+    labels:
+      app.kubernetes.io/part-of: argocd
+    secretName: argocd-notifications-secret
     type: Opaque

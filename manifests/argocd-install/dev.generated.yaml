@@ -1033,22 +1033,6 @@ metadata:
   namespace: argo-system
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  labels:
-    app.kubernetes.io/component: notifications-controller
-    app.kubernetes.io/instance: argo-cd
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: argocd-notifications-controller
-    app.kubernetes.io/part-of: argocd
-    app.kubernetes.io/version: v3.2.0
-    helm.sh/chart: argo-cd-9.1.3
-  name: argocd-notifications-secret
-  namespace: argo-system
-stringData: null
-type: Opaque
----
-apiVersion: v1
 data:
   github.webhook.secret: JGdpdGh1Yi1zZWNyZXQ6d2ViaG9va1NlY3JldA==
   oidc.cliClientID: Z3Nmd2xtcnM0anVsZTd6YWx1NmM3NmJyag==
