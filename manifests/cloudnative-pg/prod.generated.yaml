@@ -842,7 +842,7 @@ metadata:
   name: manager
   namespace: cnpg-system
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: cloudnative-pg
