@@ -1007,6 +1007,10 @@ data:
         compression: auto
         operators:
           - type: container
+          - type: regex_replace
+            field: body
+            regex: https:\/\/discord.com\/api\/webhooks\/[0-9]+\/[A-Za-z0-9\-_]+
+            replacement: "redacted-webhook-url"
 
     service:
       extensions:
@@ -1027,7 +1031,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: host-collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: host-collector-config-tcbtmbkd54
+  name: host-collector-config-8849bmgm29
   namespace: telemetry
 ---
 apiVersion: v1
@@ -2497,7 +2501,7 @@ spec:
           items:
           - key: config.yaml
             path: config.yaml
-          name: host-collector-config-tcbtmbkd54
+          name: host-collector-config-8849bmgm29
         name: config
       - hostPath:
           path: /var/lib/kube/host-collector
