@@ -23,7 +23,7 @@ images:
     newTag: v0.40.1
   - name: loki
     newName: docker.io/grafana/loki
-    newTag: 3.6.0
+    newTag: 3.6.1
   - name: k8s-sidecar
     newName: docker.io/kiwigrid/k8s-sidecar
     newTag: 2.1.2
