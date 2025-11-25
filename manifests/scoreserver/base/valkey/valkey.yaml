@@ -58,7 +58,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: init-config
-          image: busybox:1.35
+          image: busybox:PLACEHOLDER
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -94,7 +94,7 @@ spec:
                 - ALL
         - name: otelcol
           restartPolicy: Always
-          image: otel/opentelemetry-collector-contrib:0.139.0
+          image: otel/opentelemetry-collector-contrib:PLACEHOLDER
           imagePullPolicy: IfNotPresent
           args:
             - |
@@ -140,7 +140,7 @@ spec:
                 - ALL
       containers:
         - name: valkey
-          image: valkey/valkey:8.1.4-trixie
+          image: valkey/valkey:PLACEHOLDER
           command:
             - valkey-server
             - /var/lib/valkey/valkey.conf

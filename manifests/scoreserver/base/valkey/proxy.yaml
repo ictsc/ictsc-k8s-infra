@@ -40,7 +40,7 @@ spec:
       initContainers:
         - name: otelcol
           restartPolicy: Always
-          image: otel/opentelemetry-collector-contrib:0.139.0
+          image: otel/opentelemetry-collector-contrib:PLACEHOLDER
           imagePullPolicy: IfNotPresent
           args:
             - |
@@ -85,7 +85,7 @@ spec:
                 - ALL
       containers:
         - name: haproxy
-          image: haproxy:3.2.9
+          image: haproxy:PLACEHOLDER
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: config
