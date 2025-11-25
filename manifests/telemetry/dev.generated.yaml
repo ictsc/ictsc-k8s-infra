@@ -1087,6 +1087,7 @@ data:
       split_queries_by_interval: 15m
       volume_enabled: true
       allow_structured_metadata: true
+      retention_period: 744h
     # Backend
     index_gateway:
       mode: simple
@@ -1107,6 +1108,8 @@ data:
     compactor:
       compactor_ring:
         instance_enable_ipv6: true
+      retention_enabled: true
+      delete_request_store: s3
     # Read
     frontend:
       instance_enable_ipv6: true
@@ -1131,7 +1134,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: loki
     app.kubernetes.io/name: loki
-  name: loki-6mhct52gh9
+  name: loki-7c2h25g6m8
   namespace: telemetry
 ---
 apiVersion: v1
@@ -1517,7 +1520,7 @@ spec:
           items:
           - key: config.yaml
             path: config.yaml
-          name: loki-6mhct52gh9
+          name: loki-7c2h25g6m8
         name: config
       - configMap:
           name: loki-runtime
@@ -2038,7 +2041,7 @@ spec:
           items:
           - key: config.yaml
             path: config.yaml
-          name: loki-6mhct52gh9
+          name: loki-7c2h25g6m8
         name: config
       - configMap:
           name: loki-runtime
@@ -2178,7 +2181,7 @@ spec:
           items:
           - key: config.yaml
             path: config.yaml
-          name: loki-6mhct52gh9
+          name: loki-7c2h25g6m8
         name: config
       - configMap:
           name: loki-runtime
