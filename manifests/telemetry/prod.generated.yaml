@@ -1572,7 +1572,7 @@ spec:
       - env:
         - name: GOGC
           value: "30"
-        image: quay.io/prometheus-operator/prometheus-operator:v0.86.2
+        image: quay.io/prometheus-operator/prometheus-operator:v0.87.0
         livenessProbe:
           httpGet:
             path: /healthz
