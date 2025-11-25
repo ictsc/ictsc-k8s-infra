@@ -1,0 +1,7 @@
+namespace: scoreserver
+
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - postgres-cluster.yaml
+  - ./valkey

@@ -1,0 +1,244 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: valkey
+  labels:
+    app.kubernetes.io/component: valkey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valkey
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: valkey
+    app.kubernetes.io/component: valkey
+  ports:
+    - name: valkey
+      port: 6379
+      targetPort: valkey
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: valkey
+  labels:
+    app.kubernetes.io/component: valkey
+spec:
+  serviceName: valkey
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: valkey
+      app.kubernetes.io/component: valkey
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: valkey
+        app.kubernetes.io/component: valkey
+    spec:
+      serviceAccountName: valkey
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: valkey
+                    app.kubernetes.io/component: valkey
+                topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: init-config
+          image: busybox:1.35
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              POD_PREFIX=$(hostname | sed -E 's/-[0-9]+$//')
+              ORDINAL=$(hostname | sed -E "s/^${POD_PREFIX}-//")
+
+              # Initialize config only on first run
+              if [ ! -f /var/lib/valkey/valkey.conf ]; then
+                # Include static config from ConfigMap
+                echo "include /etc/valkey/valkey.conf" > /var/lib/valkey/valkey.conf
+                echo "" >> /var/lib/valkey/valkey.conf
+
+                # Set initial replication config
+                if [ "$ORDINAL" -ne "0" ]; then
+                  echo "replicaof $POD_PREFIX-0.$SERVICE_NAME 6379" >> /var/lib/valkey/valkey.conf
+                fi
+              fi
+          env:
+            - name: SERVICE_NAME
+              value: valkey
+          volumeMounts:
+            - mountPath: /etc/valkey
+              name: config
+            - mountPath: /var/lib/valkey
+              name: data
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+        - name: otelcol
+          restartPolicy: Always
+          image: otel/opentelemetry-collector-contrib:0.139.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - |
+              --config=yaml:
+                exporters:
+                  otlp:
+                    endpoint: otlp.telemetry:4317
+                    tls:
+                      insecure: true
+                receivers:
+                  redis:
+                    endpoint: localhost:6379
+                    collection_interval: 15s
+                    metrics:
+                      redis.maxmemory:
+                        enabled: true
+                      redis.role:
+                        enabled: true
+                processors:
+                  resource:
+                    attributes:
+                      - action: insert
+                        key: k8s.container.name
+                        value: valkey
+                service:
+                  pipelines:
+                    metrics:
+                      receivers: [redis]
+                      processors: [resource]
+                      exporters: [otlp]
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 10m
+            limits:
+              memory: 48Mi
+              cpu: 20m
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      containers:
+        - name: valkey
+          image: valkey/valkey:8.1.4-trixie
+          command:
+            - valkey-server
+            - /var/lib/valkey/valkey.conf
+            - --maxmemory
+            - $(MEM_REQUEST_BYTES)
+            - --replica-announce-ip
+            - $(POD_NAME).$(SERVICE_NAME).$(POD_NAMESPACE).svc.cluster.local
+          env:
+            - name: MEM_REQUEST_BYTES
+              valueFrom:
+                resourceFieldRef:
+                  resource: requests.memory
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SERVICE_NAME
+              value: valkey
+          volumeMounts:
+            - name: config
+              mountPath: /etc/valkey
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/valkey
+          ports:
+            - name: valkey
+              containerPort: 6379
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          livenessProbe:
+            exec:
+              command: ["valkey-cli", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["valkey-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: valkey-config
+            items:
+              - key: valkey.conf
+                path: valkey.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: topolvm-provisioner
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: valkey
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: valkey
+  ingress:
+    - fromEndpoints:
+        # Valkey
+        - matchExpressions:
+            - key: app.kubernetes.io/part-of
+              operator: In
+              values:
+                - valkey
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+                - valkey
+                - sentinel
+                - proxy
+        # App
+        - matchLabels:
+            app.kubernetes.io/name: scoreserver-backend
+      toPorts:
+        - ports:
+            - port: valkey
+              protocol: TCP
