@@ -4,7 +4,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: alertmanagerconfigs.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -5296,6 +5296,11 @@ spec:
                               message defines the notification message content.
                               This is the main body text of the Pushover notification.
                             type: string
+                          monospace:
+                            description: |-
+                              monospace optional HTML/monospace formatting for the message, see https://pushover.net/api#html
+                              html and monospace formatting are mutually exclusive.
+                            type: boolean
                           priority:
                             description: |-
                               priority defines the notification priority level.
@@ -8050,7 +8055,7 @@ spec:
                                 x-kubernetes-map-type: atomic
                               useFIPSSTSEndpoint:
                                 description: |-
-                                  useFIPSSTSEndpoint defines FIPS mode for AWS STS endpoint.
+                                  useFIPSSTSEndpoint defines the FIPS mode for the AWS STS endpoint.
                                   It requires Prometheus >= v2.54.0.
                                 type: boolean
                             type: object
@@ -12068,7 +12073,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: alertmanagers.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -21931,7 +21936,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: podmonitors.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -22719,11 +22724,29 @@ spec:
                       description: |-
                         port defines the `Pod` port name which exposes the endpoint.
 
+                        If the pod doesn't expose a port with the same name, it will result
+                        in no targets being discovered.
+
+                        If a `Pod` has multiple `Port`s with the same name (which is not
+                        recommended), one target instance per unique port number will be
+                        generated.
+
                         It takes precedence over the `portNumber` and `targetPort` fields.
                       type: string
                     portNumber:
-                      description: portNumber defines the `Pod` port number which
-                        exposes the endpoint.
+                      description: |-
+                        portNumber defines the `Pod` port number which exposes the endpoint.
+
+                        The `Pod` must declare the specified `Port` in its spec or the
+                        target will be dropped by Prometheus.
+
+                        This cannot be used to enable scraping of an undeclared port.
+                        To scrape targets on a port which isn't exposed, you need to use
+                        relabeling to override the `__address__` label (but beware of
+                        duplicate targets if the `Pod` has other declared ports).
+
+                        In practice Prometheus will select targets for which the
+                        matches the target's __meta_kubernetes_pod_container_port_number.
                       format: int32
                       maximum: 65535
                       minimum: 1
@@ -22868,16 +22891,12 @@ spec:
                         type: object
                       type: array
                     scheme:
-                      description: |-
-                        scheme defines the HTTP scheme to use for scraping.
-
-                        `http` and `https` are the expected values unless you rewrite the
-                        `__scheme__` label via relabeling.
-
-                        If empty, Prometheus uses the default value `http`.
+                      description: scheme defines the HTTP scheme to use for scraping.
                       enum:
                       - http
                       - https
+                      - HTTP
+                      - HTTPS
                       type: string
                     scrapeTimeout:
                       description: |-
@@ -23311,7 +23330,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: probes.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -24063,16 +24082,22 @@ spec:
                     pattern: ^(http|https|socks5)://.+$
                     type: string
                   scheme:
-                    description: |-
-                      scheme defines the HTTP scheme to use for scraping.
-                      `http` and `https` are the expected values unless you rewrite the `__scheme__` label via relabeling.
-                      If empty, Prometheus uses the default value `http`.
+                    description: scheme defines the HTTP scheme to use when scraping
+                      the prober.
                     enum:
                     - http
                     - https
+                    - HTTP
+                    - HTTPS
                     type: string
                   url:
-                    description: url defines the mandatory URL of the prober.
+                    description: |-
+                      url defines the address of the prober.
+
+                      Unlike what the name indicates, the value should be in the form of
+                      `address:port` without any scheme which should be specified in the
+                      `scheme` field.
+                    minLength: 1
                     type: string
                 required:
                 - url
@@ -24694,7 +24719,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: prometheusagents.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -30187,11 +30212,12 @@ spec:
                             Cannot be set at the same time as `oauth` or `sdk`.
                           properties:
                             clientId:
-                              description: clientId defines defines the Azure User-assigned
-                                Managed identity.
+                              description: |-
+                                clientId defines the Azure User-assigned Managed identity.
+
+                                For Prometheus >= 3.5.0 and Thanos >= 0.40.0, this field is allowed to be empty to support system-assigned managed identities.
+                              minLength: 1
                               type: string
-                          required:
-                          - clientId
                           type: object
                         oauth:
                           description: |-
@@ -30368,8 +30394,11 @@ spec:
                       - V2.0
                       type: string
                     metadataConfig:
-                      description: metadataConfig defines how to send a series metadata
-                        to the remote storage.
+                      description: |-
+                        metadataConfig defines how to send a series metadata to the remote storage.
+
+                        When the field is empty, **no metadata** is sent. But when the field is
+                        null, metadata is sent.
                       properties:
                         maxSamplesPerSend:
                           description: |-
@@ -30941,7 +30970,7 @@ spec:
                           x-kubernetes-map-type: atomic
                         useFIPSSTSEndpoint:
                           description: |-
-                            useFIPSSTSEndpoint defines FIPS mode for AWS STS endpoint.
+                            useFIPSSTSEndpoint defines the FIPS mode for the AWS STS endpoint.
                             It requires Prometheus >= v2.54.0.
                           type: boolean
                       type: object
@@ -36011,7 +36040,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: prometheuses.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -37379,6 +37408,7 @@ spec:
                         pathPrefix:
                           description: pathPrefix defines the prefix for the HTTP
                             path alerts are pushed to.
+                          minLength: 1
                           type: string
                         port:
                           anyOf:
@@ -37519,7 +37549,13 @@ spec:
                             type: object
                           type: array
                         scheme:
-                          description: scheme to use when firing alerts.
+                          description: scheme defines the HTTP scheme to use when
+                            sending alerts.
+                          enum:
+                          - http
+                          - https
+                          - HTTP
+                          - HTTPS
                           type: string
                         sigv4:
                           description: |-
@@ -37595,7 +37631,7 @@ spec:
                               x-kubernetes-map-type: atomic
                             useFIPSSTSEndpoint:
                               description: |-
-                                useFIPSSTSEndpoint defines FIPS mode for AWS STS endpoint.
+                                useFIPSSTSEndpoint defines the FIPS mode for the AWS STS endpoint.
                                 It requires Prometheus >= v2.54.0.
                               type: boolean
                           type: object
@@ -43087,11 +43123,12 @@ spec:
                             Cannot be set at the same time as `oauth` or `sdk`.
                           properties:
                             clientId:
-                              description: clientId defines defines the Azure User-assigned
-                                Managed identity.
+                              description: |-
+                                clientId defines the Azure User-assigned Managed identity.
+
+                                For Prometheus >= 3.5.0 and Thanos >= 0.40.0, this field is allowed to be empty to support system-assigned managed identities.
+                              minLength: 1
                               type: string
-                          required:
-                          - clientId
                           type: object
                         oauth:
                           description: |-
@@ -43268,8 +43305,11 @@ spec:
                       - V2.0
                       type: string
                     metadataConfig:
-                      description: metadataConfig defines how to send a series metadata
-                        to the remote storage.
+                      description: |-
+                        metadataConfig defines how to send a series metadata to the remote storage.
+
+                        When the field is empty, **no metadata** is sent. But when the field is
+                        null, metadata is sent.
                       properties:
                         maxSamplesPerSend:
                           description: |-
@@ -43841,7 +43881,7 @@ spec:
                           x-kubernetes-map-type: atomic
                         useFIPSSTSEndpoint:
                           description: |-
-                            useFIPSSTSEndpoint defines FIPS mode for AWS STS endpoint.
+                            useFIPSSTSEndpoint defines the FIPS mode for the AWS STS endpoint.
                             It requires Prometheus >= v2.54.0.
                           type: boolean
                       type: object
@@ -49603,7 +49643,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: prometheusrules.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -49870,7 +49910,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: scrapeconfigs.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -51294,8 +51334,10 @@ spec:
                       pattern: ^(0|(([0-9]+)y)?(([0-9]+)w)?(([0-9]+)d)?(([0-9]+)h)?(([0-9]+)m)?(([0-9]+)s)?(([0-9]+)ms)?)$
                       type: string
                     scheme:
-                      description: scheme defines the HTTP Scheme default "http"
+                      description: scheme defines the HTTP Scheme.
                       enum:
+                      - http
+                      - https
                       - HTTP
                       - HTTPS
                       type: string
@@ -62378,10 +62420,10 @@ spec:
                   type: object
                 type: array
               scheme:
-                description: |-
-                  scheme defines the protocol scheme used for requests.
-                  If empty, Prometheus uses HTTP by default.
+                description: scheme defines the protocol scheme used for requests.
                 enum:
+                - http
+                - https
                 - HTTP
                 - HTTPS
                 type: string
@@ -62762,7 +62804,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: servicemonitors.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -63611,16 +63653,13 @@ spec:
                         type: object
                       type: array
                     scheme:
-                      description: |-
-                        scheme defines the HTTP scheme to use for scraping.
-
-                        `http` and `https` are the expected values unless you rewrite the
-                        `__scheme__` label via relabeling.
-
-                        If empty, Prometheus uses the default value `http`.
+                      description: scheme defines the HTTP scheme to use when scraping
+                        the metrics.
                       enum:
                       - http
                       - https
+                      - HTTP
+                      - HTTPS
                       type: string
                     scrapeTimeout:
                       description: |-
@@ -64171,7 +64210,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
     controller-gen.kubebuilder.io/version: v0.19.0
-    operator.prometheus.io/version: 0.86.2
+    operator.prometheus.io/version: 0.87.0
   name: thanosrulers.monitoring.coreos.com
 spec:
   group: monitoring.coreos.com
@@ -69007,11 +69046,12 @@ spec:
                             Cannot be set at the same time as `oauth` or `sdk`.
                           properties:
                             clientId:
-                              description: clientId defines defines the Azure User-assigned
-                                Managed identity.
+                              description: |-
+                                clientId defines the Azure User-assigned Managed identity.
+
+                                For Prometheus >= 3.5.0 and Thanos >= 0.40.0, this field is allowed to be empty to support system-assigned managed identities.
+                              minLength: 1
                               type: string
-                          required:
-                          - clientId
                           type: object
                         oauth:
                           description: |-
@@ -69188,8 +69228,11 @@ spec:
                       - V2.0
                       type: string
                     metadataConfig:
-                      description: metadataConfig defines how to send a series metadata
-                        to the remote storage.
+                      description: |-
+                        metadataConfig defines how to send a series metadata to the remote storage.
+
+                        When the field is empty, **no metadata** is sent. But when the field is
+                        null, metadata is sent.
                       properties:
                         maxSamplesPerSend:
                           description: |-
@@ -69761,7 +69804,7 @@ spec:
                           x-kubernetes-map-type: atomic
                         useFIPSSTSEndpoint:
                           description: |-
-                            useFIPSSTSEndpoint defines FIPS mode for AWS STS endpoint.
+                            useFIPSSTSEndpoint defines the FIPS mode for the AWS STS endpoint.
                             It requires Prometheus >= v2.54.0.
                           type: boolean
                       type: object
