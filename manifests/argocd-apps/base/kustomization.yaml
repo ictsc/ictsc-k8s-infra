@@ -10,6 +10,7 @@ resources:
   - cilium-extra.yaml
   - topolvm.yaml
   - telemetry.yaml
+  - scoreserver.yaml
 
 patches:
   - target:
