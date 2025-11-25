@@ -1458,7 +1458,7 @@ spec:
           value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
         - name: GOMEMLIMIT
           value: 270MiB
-        image: docker.io/grafana/loki:3.6.0
+        image: docker.io/grafana/loki:3.6.1
         imagePullPolicy: IfNotPresent
         name: loki
         ports:
@@ -1909,7 +1909,7 @@ spec:
           valueFrom:
             resourceFieldRef:
               resource: requests.memory
-        image: docker.io/grafana/loki:3.6.0
+        image: docker.io/grafana/loki:3.6.1
         imagePullPolicy: IfNotPresent
         name: loki
         ports:
@@ -2121,7 +2121,7 @@ spec:
           value: WHEN_REQUIRED
         - name: AWS_SHARED_CREDENTIALS_FILE
           value: /var/run/s3-secrets/sakuracloud-s3-telemetry-credentials
-        image: docker.io/grafana/loki:3.6.0
+        image: docker.io/grafana/loki:3.6.1
         imagePullPolicy: IfNotPresent
         name: loki
         ports:
