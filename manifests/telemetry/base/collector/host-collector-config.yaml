@@ -27,6 +27,7 @@ receivers:
     include:
       - /var/log/pods/*/*/*.log*
     exclude:
+      - /var/log/pods/*/*/*.log.*.tmp
       - /var/log/pods/telemetry_collector-*/*/*.log*
       - /var/log/pods/telemetry_host-collector-*/*/*.log*
     start_at: beginning
@@ -39,7 +40,7 @@ receivers:
       - type: regex_replace
         field: body
         regex: https:\/\/discord.com\/api\/webhooks\/[0-9]+\/[A-Za-z0-9\-_]+
-        replacement: "redacted-webhook-url"
+        replace_with: "https://discord.com/api/webhooks/****/****"
 
 service:
   extensions:
