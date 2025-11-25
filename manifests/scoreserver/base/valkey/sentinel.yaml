@@ -77,6 +77,12 @@ spec:
               readOnly: true
             - mountPath: /data
               name: data
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
       containers:
         - name: sentinel
           image: valkey/valkey:8.1.4-trixie

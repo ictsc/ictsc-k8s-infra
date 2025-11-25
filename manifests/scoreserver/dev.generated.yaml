@@ -568,6 +568,12 @@ spec:
               fieldPath: metadata.namespace
         image: busybox:1.35.0
         name: init-config
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
         - mountPath: /etc/valkey
           name: config
