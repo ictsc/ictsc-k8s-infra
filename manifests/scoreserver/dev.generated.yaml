@@ -722,3 +722,24 @@ spec:
   storage:
     size: 1Gi
     storageClass: topolvm-provisioner
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: discord-oauth-client
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: discord-oauth-client-id
+      - name: discord-oauth-client-secret
+    vaultID: "113702555287"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: client-id
+      objectName: discord-oauth-client-id
+    - key: client-secret
+      objectName: discord-oauth-client-secret
+    secretName: discord-oauth-client
+    type: Opaque

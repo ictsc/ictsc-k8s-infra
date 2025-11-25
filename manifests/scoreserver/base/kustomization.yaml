@@ -4,4 +4,5 @@ resources:
   - namespace.yaml
   - rbac.yaml
   - postgres-cluster.yaml
+  - secrets.yaml
   - ./valkey
