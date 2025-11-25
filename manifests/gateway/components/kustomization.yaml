@@ -37,6 +37,23 @@ replacements:
         fieldPaths:
           - spec.listeners.[name=argocd-https].hostname
           - spec.listeners.[name=telemetry-https].hostname
+          - spec.listeners.[name=^contest-https$].hostname
+      - select:
+          kind: Gateway
+          name: web
+        options:
+          delimiter: "."
+          index: 2
+        fieldPaths:
+          - spec.listeners.[name=^admin-contest-https$].hostname
+      - select:
+          kind: Gateway
+          name: web
+        options:
+          delimiter: "."
+          index: 3
+        fieldPaths:
+          - spec.listeners.[name=^api-admin-contest-https$].hostname
       - select:
           kind: Gateway
           name: web-with-auth
