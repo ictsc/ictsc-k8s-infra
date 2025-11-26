@@ -11,7 +11,7 @@ images:
     newTag: "1.35.0"
   - name: valkey/valkey
     newName: valkey/valkey
-    newTag: 8.1.4-trixie
+    newTag: 9.0.0-trixie
   - name: otel/opentelemetry-collector-contrib
     newName: otel/opentelemetry-collector-contrib
     newTag: 0.139.0
