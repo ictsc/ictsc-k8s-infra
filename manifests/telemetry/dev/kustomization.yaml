@@ -8,7 +8,7 @@ components:
 images:
   - name: opentelemetry-collector-k8s
     newName: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
-    newTag: 0.139.0
+    newTag: 0.140.1
   - name: opentelemetry-target-allocator
     newName: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator
     newTag: 0.139.0
