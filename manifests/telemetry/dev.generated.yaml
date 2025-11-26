@@ -2373,7 +2373,7 @@ spec:
           valueFrom:
             resourceFieldRef:
               resource: requests.memory
-        image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
+        image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.140.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -2458,7 +2458,7 @@ spec:
           valueFrom:
             resourceFieldRef:
               resource: requests.memory
-        image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.139.0
+        image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.140.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
