@@ -8,6 +8,5 @@ replacements:
     targets:
       - select:
           kind: SecretProviderClass
-          name: discord-oauth-client
         fieldPaths:
           - spec.parameters.vaultID

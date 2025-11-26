@@ -6,7 +6,25 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: discord-admin-bot
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: scoreserver
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-admin
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-batch
   namespace: scoreserver
 ---
 apiVersion: v1
@@ -17,6 +35,21 @@ metadata:
     app.kubernetes.io/part-of: valkey
   name: valkey
   namespace: scoreserver
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: scoreserver-admin
+  namespace: scoreserver
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - scoreserver-admin
+  resources:
+  - serviceaccounts/token
+  verbs:
+  - create
 ---
 apiVersion: v1
 data:
@@ -122,6 +155,57 @@ spec:
     app.kubernetes.io/name: valkey-sentinel
     app.kubernetes.io/part-of: valkey
   type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-pin
+  namespace: scoreserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: secret-pin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: secret-pin
+    spec:
+      containers:
+      - image: registry.k8s.io/pause:3.10.1
+        imagePullPolicy: IfNotPresent
+        name: pause
+        resources:
+          limits:
+            cpu: 2m
+            memory: 10Mi
+          requests:
+            cpu: 1m
+            memory: 1Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /run/scoreserver-admin-oauth-client
+          name: scoreserver-admin-oauth-client
+          readOnly: true
+      securityContext:
+        fsGroup: 10002
+        runAsGroup: 10002
+        runAsNonRoot: true
+        runAsUser: 10002
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: scoreserver-admin-oauth-client
+        name: scoreserver-admin-oauth-client
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -607,6 +691,25 @@ spec:
           storage: 100Mi
       storageClassName: topolvm-provisioner
 ---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scoreserver-app
+  namespace: scoreserver
+spec:
+  destination:
+    namespace: scoreserver
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: dev
+    repoURL: https://github.com/ictsc/ictsc-regalia-release
+    targetRevision: 2025-pr
+  syncPolicy:
+    automated: {}
+    syncOptions:
+    - ServerSideApply=true
+---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -731,15 +834,56 @@ metadata:
 spec:
   parameters:
     secrets: |
-      - name: discord-oauth-client-id
-      - name: discord-oauth-client-secret
+      - name: scoreserver-discord-client-id
+      - name: scoreserver-discord-client-secret
     vaultID: "113702555287"
   provider: sakuracloud
   secretObjects:
   - data:
     - key: client-id
-      objectName: discord-oauth-client-id
+      objectName: scoreserver-discord-client-id
     - key: client-secret
-      objectName: discord-oauth-client-secret
+      objectName: scoreserver-discord-client-secret
     secretName: discord-oauth-client
+    type: Opaque
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: scoreserver-admin-oauth-client
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: scoreserver-admin-client-secret
+    vaultID: "113702555287"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: client-secret
+      objectName: scoreserver-admin-client-secret
+    secretName: scoreserver-admin-oauth-client
+    type: Opaque
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: scoreserver-discord-bot
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: scoreserver-discord-bot-token
+        path: bot-token
+      - name: scoreserver-discord-bot-staff-password
+        path: staff-password
+    vaultID: "113702555287"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: bot-token
+      objectName: bot-token
+    - key: staff-password
+      objectName: staff-password
+    secretName: scoreserver-discord-bot
     type: Opaque
