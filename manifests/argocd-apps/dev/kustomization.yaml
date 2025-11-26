@@ -1,9 +1,13 @@
+namespace: argo-system
+
 resources:
   - ../base
+  - scoreserver-app.yaml
 
 patches:
   - target:
       kind: Application
+      labelSelector: app-type=infra
     patch: |-
       - op: add
         path: /spec/source/directory

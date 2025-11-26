@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scoreserver-app
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: scoreserver
+  source:
+    repoURL: https://github.com/ictsc/ictsc-regalia-release
+    targetRevision: 2025-pr
+    path: dev
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - ServerSideApply=true
