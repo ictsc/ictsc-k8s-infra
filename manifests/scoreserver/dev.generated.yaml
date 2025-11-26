@@ -691,25 +691,6 @@ spec:
           storage: 100Mi
       storageClassName: topolvm-provisioner
 ---
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: scoreserver-app
-  namespace: scoreserver
-spec:
-  destination:
-    namespace: scoreserver
-    server: https://kubernetes.default.svc
-  project: default
-  source:
-    path: dev
-    repoURL: https://github.com/ictsc/ictsc-regalia-release
-    targetRevision: 2025-pr
-  syncPolicy:
-    automated: {}
-    syncOptions:
-    - ServerSideApply=true
----
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
