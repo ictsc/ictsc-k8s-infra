@@ -14,7 +14,7 @@ images:
     newTag: 8.1.4-trixie
   - name: otel/opentelemetry-collector-contrib
     newName: otel/opentelemetry-collector-contrib
-    newTag: 0.139.0
+    newTag: 0.140.1
   - name: haproxy
     newName: haproxy
     newTag: "3.2.9"
