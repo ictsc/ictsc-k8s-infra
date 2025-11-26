@@ -8,7 +8,7 @@ components:
 images:
   - name: busybox
     newName: busybox
-    newTag: "1.35.0"
+    newTag: "1.37.0"
   - name: valkey/valkey
     newName: valkey/valkey
     newTag: 8.1.4-trixie
