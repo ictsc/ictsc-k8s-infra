@@ -1,0 +1,870 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: discord-admin-bot
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-admin
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-batch
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: valkey
+    app.kubernetes.io/part-of: valkey
+  name: valkey
+  namespace: scoreserver
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: scoreserver-admin
+  namespace: scoreserver
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - scoreserver-admin
+  resources:
+  - serviceaccounts/token
+  verbs:
+  - create
+---
+apiVersion: v1
+data:
+  haproxy.cfg: "global\n\tdns-accept-family ipv6\n\ndefaults REDIS\n\tmode tcp\n\ttimeout
+    connect 4s\n\ttimeout server 330s\n\ttimeout client 330s\n\ttimeout check 2s\n\nlisten
+    health_check\n\tbind [::]:8888 v4v6\n\tmode http\n\tmonitor-uri /healthz\n\toption
+    dontlognull\n\nfrontend stats\n\tbind [::]:9101 v4v6\n\tmode http\n\tstats enable\n\tstats
+    uri /stats\n\tstats refresh 10s\n\nresolvers kube_dns\n\tparse-resolv-conf\n\n\thold
+    valid 10s\n\n\tresolve_retries 3\n\ttimeout retry 1s\n\ttimeout resolve 1s\n\nfrontend
+    fe_valkey_leader\n\tbind [::]:6379 v4v6\n\tuse_backend bk_valkey_leader\n\nbackend
+    bk_valkey_leader\n\tmode tcp\n\toption tcp-check\n\ttcp-check connect\n\ttcp-check
+    send PING\\r\\n\n\ttcp-check expect string +PONG\n\ttcp-check send info\\ replication\\r\\n\n\ttcp-check
+    expect string role:master\n\ttcp-check expect rstring connected_slaves:[1-9]\n\ttcp-check
+    send QUIT\\r\\n\n\tserver-template valkey 5 _valkey._tcp.valkey.scoreserver.svc.cluster.local
+    resolvers kube_dns check inter 1s fall 1 rise 1\n"
+  sentinel.conf: |
+    port 26379
+    bind 0.0.0.0 ::
+    protected-mode no
+
+    sentinel resolve-hostnames yes
+    sentinel announce-hostnames yes
+
+    sentinel down-after-milliseconds valkey 5000
+    sentinel failover-timeout valkey 10000
+    sentinel parallel-syncs valkey 1
+  valkey.conf: |
+    # Valkey Configuration
+    port 6379
+    bind 0.0.0.0 ::
+    protected-mode no
+
+    # Persistence
+    dir /var/lib/valkey
+    appendonly yes
+    appendfsync everysec
+
+    # Replication
+    replica-read-only yes
+    replica-serve-stale-data yes
+
+    # Memory
+    maxmemory-policy allkeys-lru
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: valkey-config
+    app.kubernetes.io/part-of: valkey
+  name: valkey-config-m67g9dkbb8
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey
+  namespace: scoreserver
+spec:
+  clusterIP: None
+  ports:
+  - name: valkey
+    port: 6379
+    targetPort: valkey
+  selector:
+    app.kubernetes.io/component: valkey
+    app.kubernetes.io/name: valkey
+    app.kubernetes.io/part-of: valkey
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey-proxy
+  namespace: scoreserver
+spec:
+  ports:
+  - name: valkey
+    port: 6379
+    targetPort: valkey
+  selector:
+    app.kubernetes.io/component: proxy
+    app.kubernetes.io/name: valkey-proxy
+    app.kubernetes.io/part-of: valkey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey-sentinel
+  namespace: scoreserver
+spec:
+  clusterIP: None
+  ports:
+  - name: sentinel
+    port: 26379
+    targetPort: sentinel
+  selector:
+    app.kubernetes.io/component: sentinel
+    app.kubernetes.io/name: valkey-sentinel
+    app.kubernetes.io/part-of: valkey
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-pin
+  namespace: scoreserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: secret-pin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: secret-pin
+    spec:
+      containers:
+      - image: registry.k8s.io/pause:3.10.1
+        imagePullPolicy: IfNotPresent
+        name: pause
+        resources:
+          limits:
+            cpu: 2m
+            memory: 10Mi
+          requests:
+            cpu: 1m
+            memory: 1Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /run/scoreserver-admin-oauth-client
+          name: scoreserver-admin-oauth-client
+          readOnly: true
+      securityContext:
+        fsGroup: 10002
+        runAsGroup: 10002
+        runAsNonRoot: true
+        runAsUser: 10002
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: scoreserver-admin-oauth-client
+        name: scoreserver-admin-oauth-client
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: proxy
+    app.kubernetes.io/name: valkey-proxy
+    app.kubernetes.io/part-of: valkey
+  name: valkey-proxy
+  namespace: scoreserver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+      app.kubernetes.io/name: valkey-proxy
+      app.kubernetes.io/part-of: valkey
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: proxy
+        app.kubernetes.io/name: valkey-proxy
+        app.kubernetes.io/part-of: valkey
+    spec:
+      containers:
+      - image: haproxy:3.2.9
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        name: haproxy
+        ports:
+        - containerPort: 8888
+          name: healthz
+        - containerPort: 6379
+          name: valkey
+        - containerPort: 9101
+          name: stats
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 10m
+            memory: 80Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /usr/local/etc/haproxy
+          name: config
+          readOnly: true
+      initContainers:
+      - args:
+        - |
+          --config=yaml:
+            exporters:
+              otlp:
+                endpoint: otlp.telemetry:4317
+                tls:
+                  insecure: true
+            receivers:
+              haproxy:
+                endpoint: http://localhost:9101/stats
+                collection_interval: 15s
+            processors:
+              resource:
+                attributes:
+                  - action: insert
+                    key: k8s.container.name
+                    value: haproxy
+            service:
+              pipelines:
+                metrics:
+                  receivers: [haproxy]
+                  processors: [resource]
+                  exporters: [otlp]
+              telemetry:
+                metrics:
+                  level: none
+                  readers: []
+        image: otel/opentelemetry-collector-contrib:0.139.0
+        imagePullPolicy: IfNotPresent
+        name: otelcol
+        resources:
+          limits:
+            cpu: 20m
+            memory: 48Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        restartPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: valkey
+      volumes:
+      - configMap:
+          items:
+          - key: haproxy.cfg
+            path: haproxy.cfg
+          name: valkey-config-m67g9dkbb8
+        name: config
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: valkey
+    app.kubernetes.io/part-of: valkey
+  name: valkey
+  namespace: scoreserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: valkey
+      app.kubernetes.io/name: valkey
+      app.kubernetes.io/part-of: valkey
+  serviceName: valkey
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: valkey
+        app.kubernetes.io/name: valkey
+        app.kubernetes.io/part-of: valkey
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: valkey
+                  app.kubernetes.io/name: valkey
+                  app.kubernetes.io/part-of: valkey
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - command:
+        - valkey-server
+        - /var/lib/valkey/valkey.conf
+        - --maxmemory
+        - $(MEM_REQUEST_BYTES)
+        - --replica-announce-ip
+        - $(POD_NAME).$(SERVICE_NAME).$(POD_NAMESPACE).svc.cluster.local
+        env:
+        - name: MEM_REQUEST_BYTES
+          valueFrom:
+            resourceFieldRef:
+              resource: requests.memory
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SERVICE_NAME
+          value: valkey
+        image: valkey/valkey:8.1.4-trixie
+        livenessProbe:
+          exec:
+            command:
+            - valkey-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        name: valkey
+        ports:
+        - containerPort: 6379
+          name: valkey
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - valkey-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/valkey
+          name: config
+          readOnly: true
+        - mountPath: /var/lib/valkey
+          name: data
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          POD_PREFIX=$(hostname | sed -E 's/-[0-9]+$//')
+          ORDINAL=$(hostname | sed -E "s/^${POD_PREFIX}-//")
+
+          # Initialize config only on first run
+          if [ ! -f /var/lib/valkey/valkey.conf ]; then
+            # Include static config from ConfigMap
+            echo "include /etc/valkey/valkey.conf" > /var/lib/valkey/valkey.conf
+            echo "" >> /var/lib/valkey/valkey.conf
+
+            # Set initial replication config
+            if [ "$ORDINAL" -ne "0" ]; then
+              echo "replicaof $POD_PREFIX-0.$SERVICE_NAME 6379" >> /var/lib/valkey/valkey.conf
+            fi
+          fi
+        env:
+        - name: SERVICE_NAME
+          value: valkey
+        image: busybox:1.35.0
+        imagePullPolicy: IfNotPresent
+        name: init-config
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/valkey
+          name: config
+        - mountPath: /var/lib/valkey
+          name: data
+      - args:
+        - |
+          --config=yaml:
+            exporters:
+              otlp:
+                endpoint: otlp.telemetry:4317
+                tls:
+                  insecure: true
+            receivers:
+              redis:
+                endpoint: localhost:6379
+                collection_interval: 15s
+                metrics:
+                  redis.maxmemory:
+                    enabled: true
+                  redis.role:
+                    enabled: true
+            processors:
+              resource:
+                attributes:
+                  - action: insert
+                    key: k8s.container.name
+                    value: valkey
+            service:
+              pipelines:
+                metrics:
+                  receivers: [redis]
+                  processors: [resource]
+                  exporters: [otlp]
+        image: otel/opentelemetry-collector-contrib:0.139.0
+        imagePullPolicy: IfNotPresent
+        name: otelcol
+        resources:
+          limits:
+            cpu: 20m
+            memory: 48Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        restartPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: valkey
+      volumes:
+      - configMap:
+          items:
+          - key: valkey.conf
+            path: valkey.conf
+          name: valkey-config-m67g9dkbb8
+        name: config
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/part-of: valkey
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: topolvm-provisioner
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: sentinel
+    app.kubernetes.io/name: valkey-sentinel
+    app.kubernetes.io/part-of: valkey
+  name: valkey-sentinel
+  namespace: scoreserver
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: Parallel
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: sentinel
+      app.kubernetes.io/name: valkey-sentinel
+      app.kubernetes.io/part-of: valkey
+  serviceName: valkey-sentinel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: sentinel
+        app.kubernetes.io/name: valkey-sentinel
+        app.kubernetes.io/part-of: valkey
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: sentinel
+                  app.kubernetes.io/name: valkey-sentinel
+                  app.kubernetes.io/part-of: valkey
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - command:
+        - valkey-sentinel
+        - /data/sentinel.conf
+        - --sentinel
+        - announce-ip
+        - $(POD_NAME).$(SERVICE_NAME).$(NAMESPACE).svc.cluster.local
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SERVICE_NAME
+          value: valkey-sentinel
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: valkey/valkey:8.1.4-trixie
+        livenessProbe:
+          exec:
+            command:
+            - valkey-cli
+            - -p
+            - "26379"
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        name: sentinel
+        ports:
+        - containerPort: 26379
+          name: sentinel
+        readinessProbe:
+          exec:
+            command:
+            - valkey-cli
+            - -p
+            - "26379"
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/valkey
+          name: config
+          readOnly: true
+        - mountPath: /data
+          name: data
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - |
+          # Initialize main config only on first run (Sentinel writes here)
+          if [ ! -f /data/sentinel.conf ]; then
+            echo "include /etc/valkey/sentinel.conf" >> /data/sentinel.conf
+            echo "sentinel monitor valkey valkey-0.valkey.$NAMESPACE.svc.cluster.local 6379 2" >> /data/sentinel.conf
+          fi
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: busybox:1.35.0
+        name: init-config
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/valkey
+          name: config
+          readOnly: true
+        - mountPath: /data
+          name: data
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: valkey
+      volumes:
+      - configMap:
+          items:
+          - key: sentinel.conf
+            path: sentinel.conf
+          name: valkey-config-m67g9dkbb8
+        name: config
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/part-of: valkey
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Mi
+      storageClassName: topolvm-provisioner
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgres
+  namespace: scoreserver
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  ingress:
+  - fromEndpoints:
+    - matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+        - backend
+        - migrate
+    toPorts:
+    - ports:
+      - port: postgresql
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey
+  namespace: scoreserver
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: valkey
+  ingress:
+  - fromEndpoints:
+    - matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values:
+        - valkey
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+        - valkey
+        - sentinel
+        - proxy
+    - matchLabels:
+        app.kubernetes.io/name: scoreserver-backend
+    toPorts:
+    - ports:
+      - port: valkey
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey-proxy
+  namespace: scoreserver
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+      app.kubernetes.io/name: valkey-proxy
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: scoreserver-backend
+    toPorts:
+    - ports:
+      - port: valkey
+        protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: valkey
+  name: valkey-sentinel
+  namespace: scoreserver
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: sentinel
+      app.kubernetes.io/name: valkey-sentinel
+  ingress:
+  - fromEndpoints:
+    - matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values:
+        - valkey
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+        - sentinel
+    toPorts:
+    - ports:
+      - port: sentinel
+        protocol: TCP
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: scoreserver
+spec:
+  inheritedMetadata:
+    labels:
+      app.kubernetes.io/name: postgres
+  instances: 2
+  storage:
+    size: 1Gi
+    storageClass: topolvm-provisioner
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: discord-oauth-client
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: scoreserver-discord-client-id
+      - name: scoreserver-discord-client-secret
+    vaultID: "113702773889"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: client-id
+      objectName: scoreserver-discord-client-id
+    - key: client-secret
+      objectName: scoreserver-discord-client-secret
+    secretName: discord-oauth-client
+    type: Opaque
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: scoreserver-admin-oauth-client
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: scoreserver-admin-client-secret
+    vaultID: "113702773889"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: client-secret
+      objectName: scoreserver-admin-client-secret
+    secretName: scoreserver-admin-oauth-client
+    type: Opaque
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: scoreserver-discord-bot
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: scoreserver-discord-bot-token
+        path: bot-token
+      - name: scoreserver-discord-bot-staff-password
+        path: staff-password
+    vaultID: "113702773889"
+  provider: sakuracloud
+  secretObjects:
+  - data:
+    - key: bot-token
+      objectName: bot-token
+    - key: staff-password
+      objectName: staff-password
+    secretName: scoreserver-discord-bot
+    type: Opaque

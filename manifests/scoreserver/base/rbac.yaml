@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-batch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: discord-admin-bot
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: scoreserver-admin
+rules:
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    resourceNames: ["scoreserver-admin"]
+    verbs: ["create"]

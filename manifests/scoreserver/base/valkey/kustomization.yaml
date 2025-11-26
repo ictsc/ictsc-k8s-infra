@@ -1,0 +1,20 @@
+labels:
+  - includeSelectors: true
+    includeTemplates: true
+    pairs:
+      app.kubernetes.io/part-of: valkey
+
+configMapGenerator:
+  - name: valkey-config
+    options:
+      labels:
+        app.kubernetes.io/name: valkey-config
+    files:
+      - valkey.conf
+      - sentinel.conf
+      - haproxy.cfg
+
+resources:
+  - valkey.yaml
+  - sentinel.yaml
+  - proxy.yaml

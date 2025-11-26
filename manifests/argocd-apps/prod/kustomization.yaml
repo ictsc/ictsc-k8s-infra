@@ -1,14 +1,20 @@
+namespace: argo-system
+
 resources:
   - ../base
 
 patches:
   - target:
       kind: Application
+      labelSelector: app-type=infra
     patch: |-
       - op: add
         path: /spec/source/directory
         value:
           include: "{crds,prod}.generated.yaml"
+  - target:
+      kind: Application
+    patch: |-
       - op: add
         path: /spec/syncPolicy/automated/enabled
         value: true

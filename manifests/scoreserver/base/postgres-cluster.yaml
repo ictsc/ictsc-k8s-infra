@@ -1,0 +1,33 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+spec:
+  instances: 2
+  inheritedMetadata:
+    labels:
+      app.kubernetes.io/name: postgres
+  storage:
+    storageClass: topolvm-provisioner
+    size: 1Gi
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgres
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  ingress:
+    - fromEndpoints:
+        - matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values:
+                - backend
+                - migrate
+      toPorts:
+        - ports:
+            - port: postgresql
+              protocol: TCP

@@ -1,6 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: argocd-extra
   namespace: argo-system
 spec:
@@ -23,6 +25,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: cert-manager
   namespace: argo-system
 spec:
@@ -45,6 +49,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: cilium-extra
   namespace: argo-system
 spec:
@@ -67,6 +73,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: cloudnative-pg
   namespace: argo-system
 spec:
@@ -90,6 +98,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: csi-secrets-store
   namespace: argo-system
 spec:
@@ -112,6 +122,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: envoy-gateway
   namespace: argo-system
 spec:
@@ -135,6 +147,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: gateway
   namespace: argo-system
 spec:
@@ -158,6 +172,51 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
+  name: scoreserver
+  namespace: argo-system
+spec:
+  destination:
+    namespace: scoreserver
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      include: '{crds,dev}.generated.yaml'
+    path: manifests/scoreserver
+    repoURL: https://github.com/ictsc/ictsc-k8s-infra
+    targetRevision: main
+  syncPolicy:
+    automated:
+      enabled: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: scoreserver-app
+  namespace: argo-system
+spec:
+  destination:
+    namespace: scoreserver
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: dev
+    repoURL: https://github.com/ictsc/ictsc-regalia-release
+    targetRevision: 2025-pr
+  syncPolicy:
+    automated: {}
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  labels:
+    app-type: infra
   name: telemetry
   namespace: argo-system
 spec:
@@ -180,6 +239,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    app-type: infra
   name: topolvm
   namespace: argo-system
 spec:
