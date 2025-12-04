@@ -212,6 +212,28 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  name: scoreserver-app
+  namespace: argo-system
+spec:
+  destination:
+    namespace: scoreserver
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: prod
+    repoURL: https://github.com/ictsc/ictsc-regalia-release
+    targetRevision: 2025-pr
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
   labels:
     app-type: infra
   name: telemetry

@@ -2,6 +2,7 @@ namespace: argo-system
 
 resources:
   - ../base
+  - scoreserver-app.yaml
 
 patches:
   - target:
