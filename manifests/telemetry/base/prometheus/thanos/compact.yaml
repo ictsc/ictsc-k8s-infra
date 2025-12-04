@@ -96,7 +96,7 @@ spec:
                     accessModes: [ReadWriteOnce]
                     resources:
                       requests:
-                        storage: 10Gi
+                        storage: 16Gi
             - name: thanos-s3-secrets
               csi:
                 driver: secrets-store.csi.k8s.io
