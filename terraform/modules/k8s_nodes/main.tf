@@ -52,7 +52,7 @@ resource "sakura_server" "nat64box" {
 
   disks = [sakura_disk.nat64box.id]
   network_interface = [{
-    upstream        = sakura_internet.internet.switch_id
+    upstream        = sakura_internet.internet.vswitch_id
     user_ip_address = sakura_internet.internet.ip_addresses[0]
   }]
 
@@ -91,7 +91,7 @@ resource "sakura_server" "control_plane" {
 
   disks = [sakura_disk.control_plane_root[count.index].id]
   network_interface = [{
-    upstream = sakura_internet.internet.switch_id,
+    upstream = sakura_internet.internet.vswitch_id,
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
@@ -131,7 +131,7 @@ resource "sakura_server" "worker" {
     sakura_disk.worker_data[count.index].id,
   ]
   network_interface = [{
-    upstream = sakura_internet.internet.switch_id,
+    upstream = sakura_internet.internet.vswitch_id,
   }]
 
   user_data = templatefile("${path.module}/cloud-init-node.yaml", {
