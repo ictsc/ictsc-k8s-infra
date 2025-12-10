@@ -134,6 +134,25 @@ kind: Role
 metadata:
   labels:
     app.kubernetes.io/part-of: cilium
+  name: cilium-operator-ztunnel
+  namespace: kube-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
   name: hubble-generate-certs
   namespace: kube-system
 rules:
@@ -754,6 +773,22 @@ kind: RoleBinding
 metadata:
   labels:
     app.kubernetes.io/part-of: cilium
+  name: cilium-operator-ztunnel
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cilium-operator-ztunnel
+subjects:
+- kind: ServiceAccount
+  name: cilium-operator
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cilium
   name: hubble-generate-certs
   namespace: kube-system
 roleRef:
@@ -838,6 +873,7 @@ data:
   clustermesh-cache-ttl: 0s
   clustermesh-enable-endpoint-sync: "false"
   clustermesh-enable-mcs-api: "false"
+  clustermesh-mcs-api-install-crds: "true"
   cni-exclusive: "true"
   cni-log-file: /var/run/cilium/cilium-cni.log
   controller-group-metrics: write-cni-file sync-host-ips sync-lb-maps-with-k8s-services
@@ -906,6 +942,7 @@ data:
   gateway-api-xff-num-trusted-hops: "0"
   health-check-icmp-failure-threshold: "3"
   http-retry-count: "3"
+  http-stream-idle-timeout: "300"
   hubble-disable-tls: "false"
   hubble-listen-address: :4244
   hubble-metrics: dns drop:sourceContext=workload;destinationContext=workload tcp
@@ -1223,19 +1260,22 @@ spec:
               name: cilium-kubernetes-service-host
         - name: KUBERNETES_SERVICE_PORT
           value: "6443"
-        image: quay.io/cilium/operator-generic:v1.19.0-pre.2@sha256:6da95faf2094a02fd8c0ca023adb3c2a0971f73ca4e365e9b72d005a514609b7
+        image: quay.io/cilium/operator-generic:v1.19.0-pre.3@sha256:c2796566b40cfdc4b59cc1d460d91b86436ded0b447ef82d4e3663f745db6671
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
             host: ::1
             path: /healthz
-            port: 9234
+            port: health
             scheme: HTTP
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 3
         name: cilium-operator
         ports:
+        - containerPort: 9234
+          hostPort: 9234
+          name: health
         - containerPort: 9963
           hostPort: 9963
           name: prometheus
@@ -1245,7 +1285,7 @@ spec:
           httpGet:
             host: ::1
             path: /healthz
-            port: 9234
+            port: health
             scheme: HTTP
           initialDelaySeconds: 0
           periodSeconds: 5
@@ -1324,7 +1364,7 @@ spec:
         - serve
         command:
         - hubble-relay
-        image: quay.io/cilium/hubble-relay:v1.19.0-pre.2@sha256:cfebb1e03451c4152a9076e6661b57b458e4357a4395736970397f7cf1ab9f5b
+        image: quay.io/cilium/hubble-relay:v1.19.0-pre.3@sha256:6771ceb69dbe96e91950c474b146e3e9dc74c64340b6a87dea28be20ed6566fc
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 12
@@ -1429,7 +1469,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 8081
+            port: http
         name: frontend
         ports:
         - containerPort: 8081
@@ -1437,7 +1477,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /
-            port: 8081
+            port: http
         securityContext:
           allowPrivilegeEscalation: false
         terminationMessagePolicy: FallbackToLogsOnError
@@ -1532,7 +1572,7 @@ spec:
                   - key encipherment
                   - client auth
                   validity: 8760h
-            image: quay.io/cilium/certgen:v0.3.0@sha256:c6f836b5352adc16a241c5c24ba5576341c23a81b73c9fab4daba07b92d811a8
+            image: quay.io/cilium/certgen:v0.3.1@sha256:2825dbfa6f89cbed882fd1d81e46a56c087e35885825139923aa29eb8aec47a9
             imagePullPolicy: IfNotPresent
             name: certgen
             securityContext:
@@ -1615,7 +1655,7 @@ spec:
           value: "1"
         - name: KUBE_CLIENT_BACKOFF_DURATION
           value: "120"
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         lifecycle:
           postStart:
@@ -1657,13 +1697,17 @@ spec:
             - name: require-k8s-connectivity
               value: "false"
             path: /healthz
-            port: 9879
+            port: health
             scheme: HTTP
           periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 5
         name: cilium-agent
         ports:
+        - containerPort: 9879
+          hostPort: 9879
+          name: health
+          protocol: TCP
         - containerPort: 4244
           hostPort: 4244
           name: peer-service
@@ -1684,7 +1728,7 @@ spec:
             - name: brief
               value: "true"
             path: /healthz
-            port: 9879
+            port: health
             scheme: HTTP
           periodSeconds: 30
           successThreshold: 1
@@ -1717,7 +1761,7 @@ spec:
             - name: brief
               value: "true"
             path: /healthz
-            port: 9879
+            port: health
             scheme: HTTP
           initialDelaySeconds: 5
           periodSeconds: 2
@@ -1777,7 +1821,7 @@ spec:
               name: cilium-kubernetes-service-host
         - name: KUBERNETES_SERVICE_PORT
           value: "6443"
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: config
         securityContext:
@@ -1802,7 +1846,7 @@ spec:
           value: /run/cilium/cgroupv2
         - name: BIN_PATH
           value: /opt/cni/bin
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: mount-cgroup
         securityContext:
@@ -1832,7 +1876,7 @@ spec:
         env:
         - name: BIN_PATH
           value: /opt/cni/bin
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: apply-sysctl-overwrites
         securityContext:
@@ -1858,7 +1902,7 @@ spec:
         - /bin/bash
         - -c
         - --
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: mount-bpf-fs
         securityContext:
@@ -1896,7 +1940,7 @@ spec:
               name: cilium-kubernetes-service-host
         - name: KUBERNETES_SERVICE_PORT
           value: "6443"
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: clean-cilium-state
         securityContext:
@@ -1922,7 +1966,7 @@ spec:
           name: cilium-run
       - command:
         - /install-plugin.sh
-        image: quay.io/cilium/cilium:v1.19.0-pre.2@sha256:507852b22e347fc1c6c0d2f3bd68096e466cf9022524e5057a648b9505a5e35b
+        image: quay.io/cilium/cilium:v1.19.0-pre.3@sha256:9ba932dcafcb30f44ae4835edb83081423ae4139b2a8e8b8c7245f47a60de925
         imagePullPolicy: IfNotPresent
         name: install-cni-binaries
         resources:
@@ -2120,7 +2164,7 @@ spec:
               name: cilium-kubernetes-service-host
         - name: KUBERNETES_SERVICE_PORT
           value: "6443"
-        image: quay.io/cilium/cilium-envoy:v1.35.3-1760614940-cb5737105ff9a4ca5d080c0c8f3ea1bfdc08de83@sha256:808c986a99e2a1ea9785b49604a1ccd1e1cdc21d4b7a2ff1236cc31788ea9b45
+        image: quay.io/cilium/cilium-envoy:v1.35.3-1764238404-a890eb288598920fc146308ef4b05004f2ee7bcf@sha256:5a5403c2847af60352f2ae0c69642b0484b741a8ca5c15b34737e10553c64e08
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 10
@@ -2226,7 +2270,7 @@ metadata:
     app.kubernetes.io/name: hubble-generate-certs
     app.kubernetes.io/part-of: cilium
     k8s-app: hubble-generate-certs
-  name: hubble-generate-certs-84d5ffe51d
+  name: hubble-generate-certs-230a7eca1d
   namespace: kube-system
 spec:
   template:
@@ -2269,7 +2313,7 @@ spec:
               - key encipherment
               - client auth
               validity: 8760h
-        image: quay.io/cilium/certgen:v0.3.0@sha256:c6f836b5352adc16a241c5c24ba5576341c23a81b73c9fab4daba07b92d811a8
+        image: quay.io/cilium/certgen:v0.3.1@sha256:2825dbfa6f89cbed882fd1d81e46a56c087e35885825139923aa29eb8aec47a9
         imagePullPolicy: IfNotPresent
         name: certgen
         securityContext:
