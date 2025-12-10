@@ -4,7 +4,7 @@ commonAnnotations:
 helmCharts:
   - name: gateway-crds-helm
     repo: oci://docker.io/envoyproxy
-    version: 1.6.0
+    version: 1.6.1
     releaseName: eg
     valuesInline:
       crds:
