@@ -18,4 +18,4 @@ packages:
 - name: cli/cli@v2.83.1
 - name: sigstore/cosign@v3.0.2
 - name: kubernetes-sigs/kustomize@kustomize/v5.8.0
-- name: aquasecurity/trivy@v0.67.2
+- name: aquasecurity/trivy@v0.68.1
