@@ -51,6 +51,20 @@ rules:
   verbs:
   - create
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: scoreserver-admin
+  namespace: scoreserver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: scoreserver-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: github:ictsc:ictsc2025
+---
 apiVersion: v1
 data:
   haproxy.cfg: "global\n\tdns-accept-family ipv6\n\ndefaults REDIS\n\tmode tcp\n\ttimeout
