@@ -52,6 +52,17 @@ rules:
   - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:service-account-issuer-discovery
+rules:
+- nonResourceURLs:
+  - /.well-known/openid-configuration
+  - /openid/v1/jwks
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: scoreserver-admin
@@ -64,6 +75,19 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: github:ictsc:ictsc2025
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: scoreserver-oidc-discovery
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:service-account-issuer-discovery
+subjects:
+- kind: ServiceAccount
+  name: scoreserver
+  namespace: scoreserver
 ---
 apiVersion: v1
 data:
