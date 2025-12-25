@@ -337,7 +337,7 @@ spec:
                 metrics:
                   level: none
                   readers: []
-        image: otel/opentelemetry-collector-contrib:0.140.1
+        image: otel/opentelemetry-collector-contrib:0.141.0
         imagePullPolicy: IfNotPresent
         name: otelcol
         resources:
@@ -530,7 +530,7 @@ spec:
                   receivers: [redis]
                   processors: [resource]
                   exporters: [otlp]
-        image: otel/opentelemetry-collector-contrib:0.140.1
+        image: otel/opentelemetry-collector-contrib:0.141.0
         imagePullPolicy: IfNotPresent
         name: otelcol
         resources:
