@@ -1,5 +1,5 @@
 .env
-!.env.example
+!.env.template
 
 terraform/**/.terraform
 terraform/modules/*/.terraform.lock.hcl
