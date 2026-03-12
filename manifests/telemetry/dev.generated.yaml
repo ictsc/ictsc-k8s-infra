@@ -1710,7 +1710,7 @@ spec:
         - --enable-feature=promql-experimental-functions
         - --endpoint=dnssrv+_grpc._tcp.prometheus-operated
         - --endpoint=dnssrv+_grpc._tcp.thanos-store
-        image: quay.io/thanos/thanos:v0.40.1
+        image: quay.io/thanos/thanos:v0.41.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 4
@@ -1790,7 +1790,7 @@ spec:
           value: WHEN_REQUIRED
         - name: AWS_SHARED_CREDENTIALS_FILE
           value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
-        image: quay.io/thanos/thanos:v0.40.1
+        image: quay.io/thanos/thanos:v0.41.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 4
@@ -2253,7 +2253,7 @@ spec:
               value: WHEN_REQUIRED
             - name: AWS_SHARED_CREDENTIALS_FILE
               value: /mnt/secrets-store/sakuracloud-s3-telemetry-credentials
-            image: quay.io/thanos/thanos:v0.40.1
+            image: quay.io/thanos/thanos:v0.41.0
             imagePullPolicy: IfNotPresent
             livenessProbe:
               failureThreshold: 4
@@ -3155,7 +3155,7 @@ spec:
             storage: 2Gi
         storageClassName: topolvm-provisioner
   thanos:
-    image: quay.io/thanos/thanos:v0.40.1
+    image: quay.io/thanos/thanos:v0.41.0
     objectStorageConfigFile: /etc/thanos/bucket.yaml
     volumeMounts:
     - mountPath: /mnt/secrets-store
