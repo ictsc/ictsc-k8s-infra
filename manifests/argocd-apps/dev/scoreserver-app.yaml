@@ -9,7 +9,7 @@ spec:
     namespace: scoreserver
   source:
     repoURL: https://github.com/ictsc/ictsc-regalia-release
-    targetRevision: 2025-pr
+    targetRevision: main
     path: dev
   syncPolicy:
     automated: {}
