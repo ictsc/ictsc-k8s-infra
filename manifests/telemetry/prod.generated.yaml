@@ -3107,7 +3107,7 @@ spec:
   enableFeatures:
   - native-histograms
   - promql-experimental-functions
-  image: quay.io/prometheus/prometheus:v3.7.3
+  image: quay.io/prometheus/prometheus:v3.10.0
   otlp:
     convertHistogramsToNHCB: true
     promoteResourceAttributes:
