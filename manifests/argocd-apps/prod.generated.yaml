@@ -222,7 +222,7 @@ spec:
   source:
     path: prod
     repoURL: https://github.com/ictsc/ictsc-regalia-release
-    targetRevision: 2025-pr
+    targetRevision: main
   syncPolicy:
     automated:
       enabled: true
