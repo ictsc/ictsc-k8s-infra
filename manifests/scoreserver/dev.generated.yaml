@@ -275,7 +275,7 @@ spec:
         app.kubernetes.io/part-of: valkey
     spec:
       containers:
-      - image: haproxy:3.3.4
+      - image: haproxy:3.3.5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
