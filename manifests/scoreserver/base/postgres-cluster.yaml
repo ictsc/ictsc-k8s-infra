@@ -27,6 +27,7 @@ spec:
               values:
                 - backend
                 - migrate
+                - metrics-collector
       toPorts:
         - ports:
             - port: postgresql
