@@ -667,6 +667,16 @@ data:
         endpoint: http://prometheus-prometheus-1.prometheus-operated.telemetry.svc.cluster.local:9090/api/v1/otlp
       otlphttp/loki:
         endpoint: http://loki-write:3100/otlp
+      otlphttp/mackerel:
+        endpoint: https://otlp-vaxila.mackerelio.com
+        headers:
+          Accept: "*/*"
+          "Mackerel-Api-Key": "${file:/run/secrets/mackerel-api-key}"
+        sending_queue:
+          batch:
+            min_size: 5000
+            max_size: 5000
+            sizer: items
 
     extensions:
       pprof:
@@ -680,9 +690,9 @@ data:
     processors:
       batch: {}
       memory_limiter:
-        check_interval: 5s
-        limit_percentage: 80
-        spike_limit_percentage: 25
+        check_interval: 1s
+        limit_mib: ${env:MEMORY_LIMIT_MIB}
+        spike_limit_percentage: 20
 
       k8sattributes:
         auth_type: serviceAccount
@@ -881,6 +891,13 @@ data:
             - k8sattributes
             - batch
           exporters: [forward]
+        traces/otlp:
+          receivers: [otlp]
+          processors:
+            - memory_limiter
+            - k8sattributes
+            - batch
+          exporters: [forward]
 
         metrics/prometheus:
           receivers: [prometheus]
@@ -935,6 +952,10 @@ data:
           receivers: [forward]
           processors: [resource]
           exporters: [otlphttp/loki]
+        traces/export:
+          receivers: [forward]
+          processors: [resource]
+          exporters: [otlphttp/mackerel]
 
       telemetry:
         resource:
@@ -963,7 +984,7 @@ metadata:
     app.kubernetes.io/component: collector
     app.kubernetes.io/name: collector-config
     app.kubernetes.io/part-of: opentelemetry-collector
-  name: collector-config-4795m76bg7
+  name: collector-config-gk86tkb298
   namespace: telemetry
 ---
 apiVersion: v1
@@ -2373,6 +2394,11 @@ spec:
           valueFrom:
             resourceFieldRef:
               resource: requests.memory
+        - name: MEMORY_LIMIT_MIB
+          valueFrom:
+            resourceFieldRef:
+              divisor: 1Mi
+              resource: limits.memory
         image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s:0.140.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2410,6 +2436,9 @@ spec:
         - mountPath: /etc/otelcol
           name: config
           readOnly: true
+        - mountPath: /run/secrets
+          name: secrets
+          readOnly: true
       securityContext:
         runAsGroup: 65532
         runAsNonRoot: true
@@ -2419,8 +2448,14 @@ spec:
       serviceAccountName: collector
       volumes:
       - configMap:
-          name: collector-config-4795m76bg7
+          name: collector-config-gk86tkb298
         name: config
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: collector-secrets
+        name: secrets
   updateStrategy:
     rollingUpdate:
       maxSurge: 2
@@ -3249,6 +3284,20 @@ spec:
     matchLabels:
       component: apiserver
       provider: kubernetes
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  labels:
+    app.kubernetes.io/part-of: opentelemetry-collector
+  name: collector-secrets
+  namespace: telemetry
+spec:
+  parameters:
+    secrets: |
+      - name: mackerel-api-key
+    vaultID: "113702555287"
+  provider: sakuracloud
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass

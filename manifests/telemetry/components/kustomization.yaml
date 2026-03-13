@@ -38,6 +38,11 @@ replacements:
           name: telemetry-s3-credentials
         fieldPaths:
           - spec.parameters.vaultID
+      - select:
+          kind: SecretProviderClass
+          name: collector-secrets
+        fieldPaths:
+          - spec.parameters.vaultID
   - source:
       kind: ConfigMap
       name: cluster-param
