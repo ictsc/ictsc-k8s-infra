@@ -65,9 +65,17 @@ spec:
               valueFrom:
                 resourceFieldRef:
                   resource: requests.memory
+            - name: MEMORY_LIMIT_MIB
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.memory
+                  divisor: 1Mi
           volumeMounts:
             - mountPath: /etc/otelcol
               name: config
+              readOnly: true
+            - mountPath: /run/secrets
+              name: secrets
               readOnly: true
           ports:
             - name: healthz
@@ -103,6 +111,23 @@ spec:
         - name: config
           configMap:
             name: collector-config
+        - name: secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: collector-secrets
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: collector-secrets
+spec:
+  provider: sakuracloud
+  parameters:
+    vaultID: $vault-id
+    secrets: |
+      - name: mackerel-api-key
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
