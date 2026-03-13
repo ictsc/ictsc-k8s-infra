@@ -313,6 +313,47 @@ spec:
         name: telemetry-client-ca
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: web-oidc-cookie-patch
+  namespace: gateway
+spec:
+  jsonPatches:
+  - name: gateway/web/argocd-https
+    operation:
+      jsonPath: $.filter_chains[?(@.name=="gateway/web-with-auth/login-https")].filters[?(@.name=="envoy.filters.network.http_connection_manager")].typed_config.http_filters[?(@.name=="envoy.filters.http.oauth2/securitypolicy/gateway/web-oidc-auth")].typed_config.config.credentials.cookie_names
+      op: add
+      path: /code_verifier
+      value: OauthCodeVerifier-web-oidc-auth
+    type: type.googleapis.com/envoy.config.listener.v3.Listener
+  - name: gateway/web/argocd-https
+    operation:
+      jsonPath: $.filter_chains[?(@.name=="gateway/web-with-auth/hubble-https")].filters[?(@.name=="envoy.filters.network.http_connection_manager")].typed_config.http_filters[?(@.name=="envoy.filters.http.oauth2/securitypolicy/gateway/web-oidc-auth")].typed_config.config.credentials.cookie_names
+      op: add
+      path: /code_verifier
+      value: OauthCodeVerifier-web-oidc-auth
+    type: type.googleapis.com/envoy.config.listener.v3.Listener
+  - name: gateway/web/argocd-https
+    operation:
+      jsonPath: $.filter_chains[?(@.name=="gateway/web/admin-contest-https")].filters[?(@.name=="envoy.filters.network.http_connection_manager")].typed_config.http_filters[?(@.name=="envoy.filters.http.oauth2/securitypolicy/scoreserver/scoreserver-admin")].typed_config.config.credentials.cookie_names
+      op: add
+      path: /code_verifier
+      value: CodeVerifier-scoreserver-admin
+    type: type.googleapis.com/envoy.config.listener.v3.Listener
+  - name: gateway/web/argocd-https
+    operation:
+      jsonPath: $.filter_chains[?(@.name=="gateway/web/contest-https")].filters[?(@.name=="envoy.filters.network.http_connection_manager")].typed_config.http_filters[?(@.name=="envoy.filters.http.oauth2/securitypolicy/scoreserver/scoreserver-admin")].typed_config.config.credentials.cookie_names
+      op: add
+      path: /code_verifier
+      value: CodeVerifier-scoreserver-admin
+    type: type.googleapis.com/envoy.config.listener.v3.Listener
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: GatewayClass
+    name: web-gateway
+  type: JSONPatch
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
   name: web

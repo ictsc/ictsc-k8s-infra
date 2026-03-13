@@ -6,6 +6,7 @@ resources:
   - secret.yaml
   - web-gateway.yaml
   - web-envoy-proxy.yaml
+  - web-oidc-cookie-patch.yaml
   - web-network-policy.yaml
   - login-service.yaml
   - telemetry-mtls-policy.yaml
