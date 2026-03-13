@@ -915,20 +915,12 @@ metadata:
 spec:
   parameters:
     secrets: |
-      - name: sstate-url
-        path: url
-      - name: sstate-user
-        path: user
       - name: sstate-password
         path: password
     vaultID: "113702555287"
   provider: sakuracloud
   secretObjects:
   - data:
-    - key: url
-      objectName: url
-    - key: user
-      objectName: user
     - key: password
       objectName: password
     secretName: scoreserver-sstate-credentials
