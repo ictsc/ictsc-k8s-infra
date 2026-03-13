@@ -18,6 +18,11 @@ kind: ServiceAccount
 metadata:
   name: scoreserver-admin
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scoreserver-image
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

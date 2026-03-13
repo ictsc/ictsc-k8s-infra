@@ -30,6 +30,12 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: scoreserver-image
+  namespace: scoreserver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   labels:
     app.kubernetes.io/component: valkey
     app.kubernetes.io/part-of: valkey
@@ -907,6 +913,19 @@ spec:
       objectName: staff-password
     secretName: scoreserver-discord-bot
     type: Opaque
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: scoreserver-master-deploy-key
+  namespace: scoreserver
+spec:
+  parameters:
+    secrets: |
+      - name: ictsc-master-deploy-key
+        path: deploy.key
+    vaultID: "113702555287"
+  provider: sakuracloud
 ---
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
