@@ -3,3 +3,25 @@ resources:
   - cluster-param.yaml
 components:
   - ../components
+patches:
+  - target:
+      kind: Gateway
+      name: web
+    patch: |-
+      - op: add
+        path: /spec/listeners/-
+        value:
+          name: contest-ictsc-net-https
+          hostname: contest.ictsc.net
+          protocol: HTTPS
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: Selector
+              selector:
+                matchLabels:
+                  kubernetes.io/metadata.name: scoreserver
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - name: contest-ictsc-net-tls

@@ -519,6 +519,20 @@ spec:
       certificateRefs:
       - name: web-tls
       mode: Terminate
+  - allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: scoreserver
+    hostname: contest.ictsc.net
+    name: contest-ictsc-net-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - name: contest-ictsc-net-tls
+      mode: Terminate
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
