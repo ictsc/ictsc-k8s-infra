@@ -15,8 +15,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secrets-store-csi-driver
   namespace: kube-system
 ---
@@ -49,8 +49,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
   name: secretproviderclasses-admin-role
@@ -76,8 +76,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretproviderclasses-role
 rules:
 - apiGroups:
@@ -143,8 +143,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
     rbac.authorization.k8s.io/aggregate-to-view: "true"
   name: secretproviderclasses-viewer-role
 rules:
@@ -166,8 +166,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
     rbac.authorization.k8s.io/aggregate-to-view: "true"
   name: secretproviderclasspodstatuses-viewer-role
 rules:
@@ -188,8 +188,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretproviderrotation-role
 rules:
 - apiGroups:
@@ -209,8 +209,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretprovidersyncing-role
 rules:
 - apiGroups:
@@ -251,8 +251,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretproviderclasses-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -271,8 +271,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretproviderrotation-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -291,8 +291,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secretprovidersyncing-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -379,8 +379,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: csi-secrets-store-secrets-store-csi-driver
   namespace: kube-system
 spec:
@@ -398,8 +398,8 @@ spec:
         app.kubernetes.io/instance: csi-secrets-store
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: secrets-store-csi-driver
-        app.kubernetes.io/version: 1.5.4
-        helm.sh/chart: secrets-store-csi-driver-1.5.4
+        app.kubernetes.io/version: 1.5.6
+        helm.sh/chart: secrets-store-csi-driver-1.5.6
     spec:
       affinity:
         nodeAffinity:
@@ -410,6 +410,7 @@ spec:
                 operator: NotIn
                 values:
                 - virtual-kubelet
+      automountServiceAccountToken: true
       containers:
       - args:
         - --v=5
@@ -448,7 +449,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
-        image: registry.k8s.io/csi-secrets-store/driver:v1.5.4
+        image: registry.k8s.io/csi-secrets-store/driver:v1.5.6
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 5
@@ -580,8 +581,8 @@ metadata:
     app.kubernetes.io/instance: csi-secrets-store
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: secrets-store-csi-driver
-    app.kubernetes.io/version: 1.5.4
-    helm.sh/chart: secrets-store-csi-driver-1.5.4
+    app.kubernetes.io/version: 1.5.6
+    helm.sh/chart: secrets-store-csi-driver-1.5.6
   name: secrets-store.csi.k8s.io
 spec:
   attachRequired: false
