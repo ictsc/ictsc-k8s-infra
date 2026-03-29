@@ -4,7 +4,7 @@ resources:
 helmCharts:
   - name: secrets-store-csi-driver
     repo: https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-    version: 1.5.4
+    version: 1.5.6
     releaseName: csi-secrets-store
     namespace: kube-system
     valuesFile: ../base/csi-helm-values.yaml
