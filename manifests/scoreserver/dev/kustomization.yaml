@@ -17,4 +17,4 @@ images:
     newTag: 0.141.0
   - name: haproxy
     newName: haproxy
-    newTag: "3.3.4"
+    newTag: "3.3.5"
