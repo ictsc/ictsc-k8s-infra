@@ -9,4 +9,3 @@ resources:
   - apiserver-monitor.yaml
   - k0s-metrics-monitor.yaml
   - coredns-monitor.yaml
-  - collector-rules.yaml
