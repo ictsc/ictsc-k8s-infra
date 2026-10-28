@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: otel-collector-export
+spec:
+  groups:
+    - name: otel-collector-export
+      rules:
+        - alert: OpenTelemetryCollectorExportFailures
+          expr: |
+            sum by (exporter) (
+              increase({__name__=~"otelcol_exporter_send_failed_(spans|metric_points|log_records)(_total)?"}[5m])
+            ) > 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: OpenTelemetry Collector cannot send telemetry
+            description: "Exporter {{ $labels.exporter }} failed to send telemetry in the last 5 minutes."
+        - alert: OpenTelemetryCollectorQueueDrops
+          expr: |
+            sum by (exporter) (
+              increase({__name__=~"otelcol_exporter_enqueue_failed_(spans|metric_points|log_records)(_total)?"}[5m])
+            ) > 0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: OpenTelemetry Collector dropped telemetry before export
+            description: "Exporter {{ $labels.exporter }} could not enqueue telemetry in the last 5 minutes."
