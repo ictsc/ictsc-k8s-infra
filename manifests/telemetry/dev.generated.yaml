@@ -3177,7 +3177,6 @@ spec:
       cpu: 200m
       memory: 256Mi
   retention: 24h
-  ruleSelector: {}
   securityContext:
     fsGroup: 2000
     runAsUser: 65534
@@ -3212,42 +3211,6 @@ spec:
   - configMap:
       name: thanos-object-store-config
     name: thanos-object-store-config
----
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  labels:
-    app.kubernetes.io/part-of: prometheus
-  name: otel-collector-export
-  namespace: telemetry
-spec:
-  groups:
-  - name: otel-collector-export
-    rules:
-    - alert: OpenTelemetryCollectorExportFailures
-      annotations:
-        description: Exporter {{ $labels.exporter }} failed to send telemetry in the
-          last 5 minutes.
-        summary: OpenTelemetry Collector cannot send telemetry
-      expr: |
-        sum by (exporter) (
-          increase({__name__=~"otelcol_exporter_send_failed_(spans|metric_points|log_records)(_total)?"}[5m])
-        ) > 0
-      for: 2m
-      labels:
-        severity: warning
-    - alert: OpenTelemetryCollectorQueueDrops
-      annotations:
-        description: Exporter {{ $labels.exporter }} could not enqueue telemetry in
-          the last 5 minutes.
-        summary: OpenTelemetry Collector dropped telemetry before export
-      expr: |
-        sum by (exporter) (
-          increase({__name__=~"otelcol_exporter_enqueue_failed_(spans|metric_points|log_records)(_total)?"}[5m])
-        ) > 0
-      for: 2m
-      labels:
-        severity: warning
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
