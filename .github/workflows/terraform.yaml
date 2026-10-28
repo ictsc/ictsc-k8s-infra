@@ -1,0 +1,39 @@
+name: Terraform
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  check:
+    name: Terraform Check
+    runs-on: ubuntu-latest
+    if: failure()
+    steps: [{ run: exit 1 }]
+    needs:
+      - changes
+
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      changes: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v5.0.0
+      - uses: dorny/paths-filter@v3.0.2
+        id: filter
+        with:
+          filters: |
+            dev:
+              - aqua.yaml
+              - .terraform-version
+              - .github/actions/setup-tools/action.yaml
+              - .github/workflows/terraform.yaml
+              - terraform/modules/**
+              - terraform/env/dev/**
